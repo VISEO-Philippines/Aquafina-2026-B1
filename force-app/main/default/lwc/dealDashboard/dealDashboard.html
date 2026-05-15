@@ -1,0 +1,188 @@
+<template>
+    <lightning-card title="Deal Summary">
+        <div class="slds-box">
+        <!-- ERROR -->
+        <template lwc:if={error}>
+            <div class="slds-p-around_medium">
+                <p><strong>Error:</strong></p>
+                <pre>{error.body.message}</pre>
+            </div>
+        </template>
+
+        <!-- OPPORTUNITY INFO -->
+        <template lwc:if={opportunity}>
+            <div class="slds-p-around_medium">
+
+                <div class="slds-grid slds-wrap slds-gutters">
+                    
+                    <div class="slds-col slds-size_1-of-2">
+                        <p><strong>Name:</strong></p>
+                        <p>{opportunity.Name}</p>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2">
+                        <p><strong>Account:</strong></p>
+                        <template lwc:if={opportunity.Account}>
+                            <p>{opportunity.Account.Name}</p>
+                        </template>
+                        <template lwc:else>
+                            <p>-</p>
+                        </template>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2 slds-m-top_small">
+                        <p><strong>Pricebook:</strong></p>
+                        <template lwc:if={opportunity.Pricebook2}>
+                            <p>{opportunity.Pricebook2.Name}</p>
+                        </template>
+                        <template lwc:else>
+                            <p>-</p>
+                        </template>
+                    </div>
+
+                </div>
+                <br>
+                <h3 class="slds-text-heading_small slds-m-bottom_small">Products Included:</h3>
+                <div class="slds-p-around_medium">
+                        <template for:each={lineItems} for:item="item">
+                            <div key={item.Id} class="slds-m-bottom_small">
+                                <p><strong>{item.Product2.Name}</strong></p>
+                                <p>Qty: {item.Quantity} | Subtotal: {item.Subtotal} | Discount: {item.Discount}% | Price: {item.TotalPrice} €</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+        </template>
+
+        <!-- QUOTE INFO -->
+        <template lwc:if={hasQuote}>
+            <div class="slds-p-around_medium">
+                <h3 class="slds-text-heading_small slds-m-bottom_small">
+                    Synced Quote Financials
+                </h3>
+
+                <div class="slds-grid slds-wrap slds-gutters">
+
+                    <div class="slds-col slds-size_1-of-2">
+                        <p><strong>Name:</strong></p>
+                        <p>{quote.Name}</p>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2">
+                        <p><strong>Discount %:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.Discount} 
+                            maximum-fraction-digits="2">
+                        </lightning-formatted-number>%
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2 slds-m-top_small">
+                        <p><strong>List Amount:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.Subtotal} 
+                            format-style="currency">
+                        </lightning-formatted-number>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2 slds-m-top_small">
+                        <p><strong>Discounted Amount:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.Total_Discounted_Amount__c} 
+                            format-style="currency">
+                        </lightning-formatted-number>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2 slds-m-top_small">
+                        <p><strong>Net Amount:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.TotalPrice} 
+                            format-style="currency">
+                        </lightning-formatted-number>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-2 slds-m-top_small">
+                        <p><strong>VAT:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.VAT_Tax__c} 
+                            format-style="currency">
+                        </lightning-formatted-number>
+                    </div>
+
+                    <div class="slds-col slds-size_1-of-1 slds-m-top_small">
+                        <p><strong>Total Amount:</strong></p>
+                        <lightning-formatted-number 
+                            value={quote.Total_Amount__c} 
+                            format-style="currency">
+                        </lightning-formatted-number>
+                    </div>
+
+                </div>
+            </div>
+        </template>
+
+        <!-- NO QUOTE -->
+        <template lwc:else>
+            <div class="slds-p-around_medium">
+                <p>Financial Totals cannot be calculated because no Quote has been synced to this opportunity yet.</p>
+            </div>
+        </template>
+        </div>
+    </lightning-card>
+
+    <!-- CHECKLIST -->
+    <lightning-card title="Stage Checklist">
+        <div class="slds-p-around_medium slds-box">
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <!-- NEW STAGE -->
+                <div class="slds-col slds-size_1-of-3">
+                    <h3 class="slds-text-heading_small">New</h3>
+
+                    <lightning-input type="checkbox" label="Primary Contact Exists"
+                        checked={hasPrimaryContact} disabled>
+                    </lightning-input>
+
+                    <lightning-input type="checkbox" label="Has Email"
+                        checked={primaryContactHasEmail} disabled>
+                    </lightning-input>
+                </div>
+
+                <!-- QUOTE SENT -->
+                <div class="slds-col slds-size_1-of-3">
+                    <h3 class="slds-text-heading_small">Quote Sent</h3>
+
+                    <lightning-input type="checkbox" label="Quote Exists"
+                        checked={hasQuote} disabled>
+                    </lightning-input>
+
+                    <lightning-input type="checkbox" label="Has Products"
+                        checked={quoteHasProducts} disabled>
+                    </lightning-input>
+
+                    <lightning-input type="checkbox" label="Quote Approved"
+                        checked={quoteApproved} disabled>
+                    </lightning-input>
+
+                    <lightning-input type="checkbox" label="Initial Quote Sent"
+                        checked={quoteInitialSent} disabled>
+                    </lightning-input>
+                </div>
+
+                <!-- NEGOTIATION -->
+                <div class="slds-col slds-size_1-of-3">
+                    <h3 class="slds-text-heading_small">Negotiation</h3>
+
+                    <lightning-input type="checkbox" label="Quote Accepted"
+                        checked={quoteAccepted} disabled>
+                    </lightning-input>
+                </div>
+
+            </div>
+
+        </div>
+        
+    </lightning-card>
+
+</template>
