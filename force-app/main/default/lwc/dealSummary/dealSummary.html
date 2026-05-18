@@ -1,0 +1,107 @@
+<template>
+    <lightning-card title="Deal Summary">
+
+        <!-- SUCCESS -->
+        <template if:true={data}>
+            <lightning-layout multiple-rows class="slds-p-around_medium">
+
+                <!-- Deal Context -->
+                <lightning-layout-item size="12" medium-device-size="4" class="slds-p-around_small">
+                    <lightning-card title="Deal Context" variant="Narrow">
+                        <div class="slds-p-around_medium">
+                            <p><b>Account:</b> {data.opportunity.Account.Name}</p>
+                            <p><b>Opportunity:</b> {data.opportunity.Name}</p>
+                            <p><b>Stage:</b> {data.opportunity.StageName}</p>
+                            <p>
+                                <b>Close Date:</b>
+                                <lightning-formatted-date-time
+                                    value={data.opportunity.CloseDate}>
+                                </lightning-formatted-date-time>
+                            </p>
+                        </div>
+                    </lightning-card>
+                </lightning-layout-item>
+
+                <!-- Quote -->
+                <template if:true={data.quote}>
+                    <lightning-layout-item size="12" medium-device-size="4" class="slds-p-around_small">
+                        <lightning-card title="Quote" variant="Narrow">
+                            <div class="slds-p-around_medium">
+                                <p><b>Name:</b> {data.quote.Name}</p>
+                                <p>
+                                    <b>Status:</b>
+                                    <span class={quoteStatusClass}>{data.quote.Status}</span>
+                                </p>
+                                <p>
+                                    <b>Product Price:</b>
+                                    <lightning-formatted-number
+                                        value={productPrice}
+                                        format-style="currency">
+                                    </lightning-formatted-number>
+                                </p>
+                                <p><b>Total Product:</b> {data.totalQty}</p>
+                            </div>
+                        </lightning-card>
+                    </lightning-layout-item>
+                </template>
+
+                <!-- Financial Summary -->
+                <lightning-layout-item size="12" medium-device-size="4" class="slds-p-around_small">
+                    <lightning-card title="Financial Summary" variant="Narrow">
+                        <div class="slds-p-around_medium">
+
+                            <p>
+                                <b>Total List:</b>
+                                <lightning-formatted-number
+                                    value={data.totalList}
+                                    format-style="currency">
+                                </lightning-formatted-number>
+                            </p>
+
+                            <p>
+                                <b>Total Discounted:</b>
+                                <lightning-formatted-number
+                                    value={data.totalDiscounted}
+                                    format-style="currency">
+                                </lightning-formatted-number>
+                            </p>
+
+                            <p>
+                                <b>Discount (%):</b>
+                                <lightning-formatted-number
+                                    value={data.discountPercent}
+                                    maximum-fraction-digits="2">
+                                </lightning-formatted-number> %
+                            </p>
+
+                            <p>
+                                <b>VAT (20%):</b>
+                                <lightning-formatted-number
+                                    value={data.vatAmount}
+                                    format-style="currency">
+                                </lightning-formatted-number>
+                            </p>
+
+                            <p class="total">
+                                <b>Total Amount:</b>
+                                <lightning-formatted-number
+                                    value={data.totalAmount}
+                                    format-style="currency">
+                                </lightning-formatted-number>
+                            </p>
+                        </div>
+                    </lightning-card>
+                </lightning-layout-item>
+
+            </lightning-layout>
+        </template>
+
+        <!-- ERROR -->
+        <template if:true={error}>
+            <div class="slds-text-color_error slds-p-around_medium">
+                Error loading deal summary: {errorMessage}
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

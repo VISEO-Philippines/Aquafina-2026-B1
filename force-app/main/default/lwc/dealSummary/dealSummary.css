@@ -1,0 +1,24 @@
+.status-approved {
+    color: green;
+    font-weight: 600;
+}
+
+.status-draft {
+    color: orange;
+    font-weight: 600;
+}
+
+.status-rejected {
+    color: red;
+    font-weight: 600;
+}
+
+.total {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+.status-in-review {
+    color: #ff8c00; /* Dark Orange */
+    font-weight: bold;
+}
