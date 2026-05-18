@@ -1,0 +1,59 @@
+<template>
+
+    <!-- main card container -->
+    <div class="slds-card slds-p-around_medium">
+
+        <!-- title -->
+        <div class="slds-text-heading_small slds-m-bottom_small">
+            Deal Readiness
+        </div>
+
+        <!-- progress section -->
+        <div class="slds-m-bottom_medium">
+
+            <div class="slds-text-body_small slds-m-bottom_xx-small">
+                Deal Readiness: {readinessProgress}%
+            </div>
+
+            <!-- SLDS progress bar -->
+            <div class="slds-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={readinessProgress}>
+                <span class="slds-progress-bar__value" data-progress={readinessProgress}>
+                    <span class="slds-assistive-text">Progress: {readinessProgress}%</span>
+                </span>
+            </div>
+
+        </div>
+
+        <!-- path style layout -->
+        <div class="slds-grid slds-align_absolute-center">
+
+            <template for:each={readinessList} for:item="item" for:index="index">
+
+                <div key={item.label} class="slds-text-align_center slds-m-horizontal_small">
+
+                    <!-- icon -->
+                    <lightning-icon 
+                        icon-name={item.iconName} 
+                        size="small"
+                        class={item.statusClass}>
+                    </lightning-icon>
+
+                    <!-- label -->
+                    <div class="slds-text-body_small slds-m-top_xx-small">
+                        {item.label}
+                    </div>
+
+                </div>
+
+                <!-- arrow -->
+                <template if:true={item.showArrow}>
+                    <div key={item.arrowKey} class="slds-m-horizontal_x-small">→</div>
+                </template>
+
+            </template>
+
+        </div>
+
+    </div>
+
+</template>
