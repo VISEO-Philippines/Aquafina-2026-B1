@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Queue xmlns="http://soap.sforce.com/2006/04/metadata">
+    <doesSendEmailToMembers>true</doesSendEmailToMembers>
+    <name>Customer Service Queue</name>
+    <queueMembers>
+        <roleAndSubordinatesInternal>
+            <roleAndSubordinateInternal>CSR_CallCenter_Cebu</roleAndSubordinateInternal>
+            <roleAndSubordinateInternal>CSR_CallCenter_Davao</roleAndSubordinateInternal>
+            <roleAndSubordinateInternal>CSR_CallCenter_Manila</roleAndSubordinateInternal>
+        </roleAndSubordinatesInternal>
+        <roles>
+            <role>Customer_Service_and_Support_Manager</role>
+        </roles>
+        <users>
+            <user>jino.capadngan.butaslac.dbd1b0b0fb0e@agentforce.com</user>
+            <user>markanthony.reyes@aquafina.com</user>
+        </users>
+    </queueMembers>
+    <queueSobject>
+        <sobjectType>Case</sobjectType>
+    </queueSobject>
+</Queue>

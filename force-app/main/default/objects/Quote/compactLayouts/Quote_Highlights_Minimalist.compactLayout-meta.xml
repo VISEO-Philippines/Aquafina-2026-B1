@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quote_Highlights_Minimalist</fullName>
+    <fields>Name</fields>
+    <fields>Status</fields>
+    <fields>Effective_Discount__c</fields>
+    <fields>GrandTotal</fields>
+    <fields>ExpirationDate</fields>
+    <label>Quote_Highlights_Minimalist</label>
+</CompactLayout>
