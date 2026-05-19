@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GlobalValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customValue>
+        <fullName>France</fullName>
+        <default>false</default>
+        <label>France</label>
+    </customValue>
+    <customValue>
+        <fullName>Spain</fullName>
+        <default>false</default>
+        <label>Spain</label>
+    </customValue>
+    <description>Used for territory management, To be used by Lead and Account objects.</description>
+    <masterLabel>Sales Jurisdiction</masterLabel>
+    <sorted>false</sorted>
+</GlobalValueSet>

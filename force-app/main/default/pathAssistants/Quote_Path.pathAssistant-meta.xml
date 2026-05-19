@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Quote</entityName>
+    <fieldName>Status</fieldName>
+    <masterLabel>Quote Path</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>OpportunityId</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Deal Secured:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Quote Sync:&lt;/strong&gt; The customer has signed off on the terms. If this quote has not been synced yet. &lt;strong&gt;Sync it now using the action buttons at the top right of this Quote record.&lt;/strong&gt;&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Accepted</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Email</fieldNames>
+        <fieldNames>IsSyncing</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Green Light for Sales:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Success:&lt;/strong&gt; The Quote has been authorized by your manager.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Send this Quote to the client:&lt;/strong&gt; You may now send this Quote to the client using the available&lt;strong&gt; &lt;/strong&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;&amp;#39;Email Quote to Client&amp;#39; Tab&lt;/strong&gt;&lt;span style=&quot;font-size: 13px;&quot;&gt; on the top right of screen or &lt;/span&gt;&lt;strong&gt;&amp;#39;Log a Call&amp;#39; &lt;/strong&gt;at the right side of the screen. If this tab is not visible, please refresh the page.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Next Step:&lt;/strong&gt; If you have notified the client, you are now clear to generate the PDF and move the status to &lt;strong&gt;Presented &lt;/strong&gt;if it it has not yet automatically updated.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Check Sync: &lt;/strong&gt;If this is your main quote, ensure that this is synced back to the Opportunity.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Approved</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Description</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Lost Opportunity:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Documentation:&lt;/strong&gt; Briefly note why the customer chose not to move forward (e.g., price, competitor).&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Cleanup:&lt;/strong&gt; This Quote will no longer sync with the Opportunity. You may draft a new Quote if the customer is interested in a different shovel line.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Denied</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>LineItemCount</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Initial Scoping:&lt;/strong&gt;﻿&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Add Products:&lt;/strong&gt; Use the &amp;#39;Add Products&amp;#39; button to include products and quantities.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Check Discount:&lt;/strong&gt; Note that if your discount exceeds &lt;strong&gt;10%&lt;/strong&gt;, This quote will automatically be submitted upon saving the Quote Line Items with Products, Quantities, and Discounts.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Sync:&lt;/strong&gt; Ensure this is marked as the &lt;strong&gt;Primary Quote&lt;/strong&gt; to update the Opportunity amount.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Draft</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Discount</fieldNames>
+        <fieldNames>Total_Amount__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Manager Evaluation in Progress:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Status:&lt;/strong&gt; The Quote is currently locked to prevent changes during the approval process.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Follow-up:&lt;/strong&gt; Reach out to your manager if the review has been pending for more than 24 hours.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>In Review</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Discount</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Note: The process for Quotes being submitted for approval is automatic upon saving the Quote Line Items. This Quote status is not visible in normal operation and is only visible when you set the Quote Status manually to &amp;#39;In Review&amp;#39;.&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Ready for Manager Eyes:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Validate Totals:&lt;/strong&gt; Confirm all line items are accurate before requesting a formal review.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;On Discounts: &lt;/strong&gt;This Quote&amp;#39;s discounts exceed the threshold for needing approvals.&lt;/li&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Submit for Approval:&lt;/strong&gt; Click the &lt;strong style=&quot;font-size: 13px;&quot;&gt;Submit for Approval&lt;/strong&gt; button. This will automatically lock the record and move it to &amp;quot;In Review.&amp;quot;&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Needs Review</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Discount</fieldNames>
+        <fieldNames>Total_Amount__c</fieldNames>
+        <fieldNames>AccountId</fieldNames>
+        <fieldNames>Email</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Customer Engagement:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Opportunity Stage upgrade:&lt;/strong&gt; This Quote&amp;#39;s Opportunity Object should automatically be set to the &lt;strong&gt;Negotiation Stage&lt;/strong&gt;.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Wait and Follow-up: &lt;/strong&gt;Wait for the client to accept the Quote, Follow up if it has been more than 3 business days.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Negotiate:&lt;/strong&gt; You may pre-submit other Quotes for approval to the manager so it can be presented immediately when needed.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Feedback:&lt;/strong&gt; Log any customer questions in the &lt;strong&gt;Notes&lt;/strong&gt; section.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;strong&gt;Accept: If the customer accepts the Quote, you may proceed to the Accepted Stage by manually clicking the Accepted chevron at the top.&lt;/strong&gt;&lt;/p&gt;</info>
+        <picklistValueName>Presented</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Discount</fieldNames>
+        <fieldNames>Total_Amount__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Adjustments Required:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Review Comments:&lt;/strong&gt; Check the Approval History at the bottom of the page for the manager’s feedback.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Modify &amp;amp; Re-submit:&lt;/strong&gt; Adjust quantities or discounts to meet guidelines, You may edit the Quote Line Items again, this will automatically be submitted for Manager Approval if needed.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Rejected</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>__MASTER__</recordTypeName>
+</PathAssistant>

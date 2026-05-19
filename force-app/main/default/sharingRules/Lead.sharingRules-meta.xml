@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>Share_Leads_for_French_Sales_Team</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Sharing Leads via Territory field to enable switching territory for lead</description>
+        <label>Share Leads for French Sales Team</label>
+        <sharedTo>
+            <group>French_Sales_Reps</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Territory__c</field>
+            <operation>equals</operation>
+            <value>France</value>
+        </criteriaItems>
+        <includeRecordsOwnedByAll>true</includeRecordsOwnedByAll>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Share_Leads_for_Spanish_Sales_Team</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Sharing Leads via Territory field to enable switching territory for lead</description>
+        <label>Share Leads for Spanish Sales Team</label>
+        <sharedTo>
+            <group>Spanish_Sales_Reps</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Territory__c</field>
+            <operation>equals</operation>
+            <value>Spain</value>
+        </criteriaItems>
+        <includeRecordsOwnedByAll>true</includeRecordsOwnedByAll>
+    </sharingCriteriaRules>
+    <sharingOwnerRules>
+        <fullName>Share_Leads_for_French_Sales_Team</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Allows the French Sales team to view leads from other Sales Represenatives within the FR Sales Representaitve Roles</description>
+        <label>Share Leads for French Sales Team</label>
+        <sharedTo>
+            <role>FR_Sales_Representative</role>
+        </sharedTo>
+        <sharedFrom>
+            <role>FR_Sales_Representative</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+    <sharingOwnerRules>
+        <fullName>Share_Leads_for_Spanish_Sales_Team</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Allows the Spanish Sales team to view leads from other Sales Represenatives within the ES Sales Representaitve Roles</description>
+        <label>Share Leads for Spanish Sales Team</label>
+        <sharedTo>
+            <role>ES_Sales_Representative</role>
+        </sharedTo>
+        <sharedFrom>
+            <role>ES_Sales_Representative</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+</SharingRules>
