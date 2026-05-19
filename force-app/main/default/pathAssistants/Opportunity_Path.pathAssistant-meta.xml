@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Opportunity</entityName>
+    <fieldName>StageName</fieldName>
+    <masterLabel>Opportunity Path</masterLabel>
+    <pathAssistantSteps>
+        <picklistValueName>Closed Won</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>SyncedQuoteId</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Refining the Deal:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Adjust if Needed:&lt;/strong&gt; If the customer requests changes, update the synced Quote to keep Opportunity totals accurate. If the new Quote requires approval, it will&lt;span style=&quot;font-size: 13px;&quot;&gt; be automatically submitted upon saving the Quote Line Items.&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Preparing for Shipment:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Shipment2 Prep:&lt;/strong&gt; Verify the shipping address is correct for the upcoming &lt;strong style=&quot;font-size: 13px;&quot;&gt;Shipment2&lt;/strong&gt; record creation.&lt;/li&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Create Shipment2 Action:&lt;/strong&gt; If everything has been finalized, Create the Shipment2 record by clicking the&lt;strong style=&quot;font-size: 13px;&quot;&gt; &amp;#39;Create Shipment2&amp;#39; Action Button&lt;/strong&gt; at the top right of this page. This will automatically send an email the Primary Contact and to the Logistics Team&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;</info>
+        <picklistValueName>Negotiation</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Description</fieldNames>
+        <fieldNames>Business_Type__c</fieldNames>
+        <fieldNames>Pricebook2Id</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Welcome to the New stage! Let&amp;#39;s get this deal moving:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Update Description:&lt;/strong&gt; Briefly explain the scope of this new opportunity in the Description field.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Choose Pricebook: &lt;/strong&gt;Set the Pricebook according to the Business Type.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Create Initial Quote:&lt;/strong&gt; Draft the initial estimate for the customer by clicking on New Quote on the Quote related list on the right.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>New</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>SyncedQuoteId</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Finalize the quote and deliver it to the customer.&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Moving from Draft to Delivery:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Final Review of Quote:&lt;/strong&gt; Ensure the Quote contains all necessary line items and correct quantities.&lt;/li&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Sync Data:&lt;/strong&gt; Link your Quote to this Opportunity to automate revenue tracking by going into the Quote record and clicking the Start Sync action.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Complete the Presented Stage in the Synced Quote:&lt;/strong&gt; Once the Quote is approved (if needed), You must send the Quote to the customer after which you may update the Quote status to &lt;strong&gt;Presented&lt;/strong&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;strong&gt;Next Step:&lt;/strong&gt; Once the customer acknowledges the quote or provides feedback, advance to Negotiation.&lt;/p&gt;</info>
+        <picklistValueName>Quote Sent</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>__MASTER__</recordTypeName>
+</PathAssistant>

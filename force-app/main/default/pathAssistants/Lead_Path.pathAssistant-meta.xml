@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Lead</entityName>
+    <fieldName>Status</fieldName>
+    <masterLabel>Lead Path</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Description</fieldNames>
+        <picklistValueName>Disqualified</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Address</fieldNames>
+        <fieldNames>Description</fieldNames>
+        <fieldNames>MobilePhone</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Deep qualification and logistics fit.&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Guidance for Success:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong style=&quot;font-size: 13px;&quot;&gt;Key Questions: &lt;/strong&gt;&lt;span style=&quot;font-size: 13px;&quot;&gt;Note the answer to these in the Description field.&lt;/span&gt; &lt;ul&gt;&lt;li&gt;&amp;quot;What is your current average weekly water bottle consumption?&amp;quot;&lt;/li&gt;&lt;li&gt;&amp;quot;Approximately how large will the volume of your order be?&amp;quot;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Ascertain Address:&lt;/strong&gt; Add a Shipping Address to this lead and supply the products the potential client is interested in.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;strong&gt;Proceed to Qualified if the Address and Description has been supplied.&lt;/strong&gt;&lt;/p&gt;</info>
+        <picklistValueName>In Progress</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Name</fieldNames>
+        <fieldNames>Description</fieldNames>
+        <picklistValueName>Qualified</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Phone</fieldNames>
+        <fieldNames>Email</fieldNames>
+        <fieldNames>Title</fieldNames>
+        <fieldNames>Business_Type__c</fieldNames>
+        <fieldNames>Territory__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Data verification.&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Guidance for Success:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Fill Contact Details:&lt;/strong&gt; Supply contact details prior to contact.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Validate Basic Data:&lt;/strong&gt; Confirm if the lead is a &lt;strong&gt;Restaurateur&lt;/strong&gt; or a &lt;strong&gt;Distributor&lt;/strong&gt;, as this dictates which Pricebook they will eventually use.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;</info>
+        <picklistValueName>To Contact</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>__MASTER__</recordTypeName>
+</PathAssistant>

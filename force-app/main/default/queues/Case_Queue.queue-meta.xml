@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Queue xmlns="http://soap.sforce.com/2006/04/metadata">
+    <doesSendEmailToMembers>false</doesSendEmailToMembers>
+    <name>Case Queue</name>
+    <queueMembers>
+        <roles>
+            <role>Customer_Service_Manager</role>
+            <role>Customer_Service_Representative</role>
+        </roles>
+        <users>
+            <user>studentjoshua00.548e48960e7d@agentforce.com</user>
+        </users>
+    </queueMembers>
+    <queueSobject>
+        <sobjectType>Case</sobjectType>
+    </queueSobject>
+</Queue>

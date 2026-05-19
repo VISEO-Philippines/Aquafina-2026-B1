@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quote_approved_before_setting_status</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+ OR(
+    ISPICKVAL( Status , &quot;Approved&quot;),
+    ISPICKVAL( Status, &quot;Accepted&quot;)
+   ),
+    NOT(ISPICKVAL( Approval_Status__c , &quot;Approved&quot;))
+)</errorConditionFormula>
+    <errorMessage>You cannot set the status of this quote to Approved or Accepted without the quote being approved.</errorMessage>
+</ValidationRule>

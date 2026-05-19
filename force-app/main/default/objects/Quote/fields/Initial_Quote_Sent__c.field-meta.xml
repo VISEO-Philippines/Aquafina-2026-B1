@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Initial_Quote_Sent__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Check if you have notified the client of the Initial Quote.</description>
+    <inlineHelpText>Check if you have notified the client of the Initial Quote</inlineHelpText>
+    <label>Initial Quote Sent</label>
+    <trackHistory>false</trackHistory>
+    <type>Checkbox</type>
+</CustomField>

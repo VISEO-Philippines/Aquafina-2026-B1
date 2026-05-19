@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lock_Line_Item_when_Quote_is_Locked</fullName>
+    <active>true</active>
+    <errorConditionFormula>OR(   
+ISPICKVAL( Quote.Status , &quot;In Review&quot;)
+)</errorConditionFormula>
+    <errorMessage>The Quote object is locked due to being in review.</errorMessage>
+</ValidationRule>
