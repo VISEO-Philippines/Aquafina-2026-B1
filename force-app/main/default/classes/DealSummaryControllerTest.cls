@@ -50,13 +50,17 @@
         Test.stopTest();
 
         // Assertions to validate expected outcomes
-        System.assertNotEquals(null, result);
-        System.assertEquals(q.Id, result.quote.Id);
-        System.assertEquals(100, result.totalList);
-        System.assertEquals(90, result.totalDiscounted);
-        System.assertEquals(10, result.discountPercent);
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.areEqual(q.Id, result.quote.Id, 'Quote should be correctly linked in the result');
+        Assert.areEqual(100, result.totalList, 'Total list price should be correct');
+        Assert.areEqual(90, result.totalDiscounted, 'Total discounted price should be correct');
+        Assert.areEqual(10, result.discountPercent, 'Discount percentage should be correct');
     }
 
+    /*
+    * Scenario: Null Opportunity Id is passed
+    * Expected: Method should return null without errors
+    */
     @IsTest
     static void testDealSummary_NullOpportunityId() {
 
@@ -65,7 +69,7 @@
             DealSummaryController.getDealSummary(null);
         Test.stopTest();
 
-        System.assertEquals(null, result, 'Result should be null for null input');
+        Assert.isNull(result, 'Result should be null for null input');
     }
 
     @IsTest
@@ -78,8 +82,8 @@
             DealSummaryController.getDealSummary(opp.Id);
         Test.stopTest();
 
-        System.assertNotEquals(null, result);
-        System.assertEquals(null, result.quote);
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isNull(result.quote, 'Quote should be null when no synced quote exists');
     }
 }
 
