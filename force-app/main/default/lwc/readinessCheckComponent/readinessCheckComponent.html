@@ -1,0 +1,26 @@
+<template >
+    <div class="slds-card-wrapper">
+        <div class="slds-grid slds-wrap slds-align_absolute-center">
+            <h1 class="slds-col slds-size_12-of-12 slds-align_absolute-center" >
+                <lightning-formatted-text value= "Opportunity Readiness Check"></lightning-formatted-text>
+            </h1>
+            <p class="slds-col slds-size_12-of-12 slds-p-around_x-small slds-p-bottom_x-small slds-align_absolute-center"  >
+                <lightning-formatted-text value="Checks whether opportunity is ready for commercialization."></lightning-formatted-text>
+            </p>
+            
+            <template  lwc:if={pseudoVar}>
+                <div class="slds-col slds-size_12-of-12" >
+                    <lightning-progress-indicator current-step={currentStep} has-error="true" type="path" variant="base">
+                        <lightning-progress-step label="New" value="0"></lightning-progress-step>
+                        <lightning-progress-step label="Quote sent" value="1"></lightning-progress-step>
+                        <lightning-progress-step label="Quote approved" value="2"></lightning-progress-step>
+                        <lightning-progress-step label="Quote Products added" value="3"></lightning-progress-step>
+                        <lightning-progress-step label="Primary Contact added" value="4"></lightning-progress-step>
+                        <lightning-progress-step label="Contact Email added" value="5"></lightning-progress-step>
+                        <lightning-progress-step label="Totals calculated" value="6"></lightning-progress-step>
+                    </lightning-progress-indicator>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

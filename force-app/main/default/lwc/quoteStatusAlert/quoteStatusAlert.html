@@ -1,0 +1,44 @@
+<template>
+    <div class="slds-text-align_center" >
+        <template lwc:if={isDraft} >
+            <div class="slds-card-wrapper slds-p-around_medium warning-bg">
+                <div class="flexbox">
+                    <lightning-icon  size="small" icon-name="utility:warning" variant="warning" ></lightning-icon>
+                    <p class="slds-p-horizontal_x-small">
+                        <lightning-formatted-text class="warning-color" value="Deal discount exceeds 10 %. Approval required." ></lightning-formatted-text>
+                    </p>
+                </div>
+            </div>
+        </template>
+        <template lwc:if={isInReview} >
+            <div class="slds-card-wrapper slds-p-around_medium blue-bg">
+                <div class="flexbox informational-color">
+                    <lightning-icon  size="small" icon-name="utility:info" variant="inverse" ></lightning-icon>
+                    <p class="slds-p-horizontal_x-small">
+                        <lightning-formatted-text class="informational-color" value="Pending approval from manager." ></lightning-formatted-text>
+                    </p>
+                </div>
+            </div>
+        </template>
+        <template lwc:if={isApproved} >
+            <div class="slds-card-wrapper slds-p-around_medium success-bg">
+                <div class="flexbox informational-color">
+                    <lightning-icon  size="small" icon-name="utility:success" variant="success" ></lightning-icon>
+                    <p class="slds-p-horizontal_x-small">
+                        <lightning-formatted-text class="success-color" value="Congratulations. Approval process complete." ></lightning-formatted-text>
+                    </p>
+                </div>
+            </div>
+        </template>
+        <template lwc:if={isRejected} >
+            <div class="slds-card-wrapper slds-p-around_medium error-bg">
+                <div class="flexbox">
+                    <lightning-icon  size="small" icon-name="utility:error" variant="error" ></lightning-icon>
+                    <p class="slds-p-horizontal_x-small">
+                        <lightning-formatted-text class="error-color" value="Quote must be updated and resubmitted." ></lightning-formatted-text>
+                    </p>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
