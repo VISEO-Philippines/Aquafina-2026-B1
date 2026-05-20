@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quote_Selection_Check__c</fullName>
+    <externalId>false</externalId>
+    <formula>IF(   ISPICKVAL(Opportunity__r.SyncedQuote.Status, &apos;Rejected&apos;), &apos;❌ SELECTED QUOTE IS NOT ACCEPTED&apos;,IF ( ISPICKVAL(Opportunity__r.SyncedQuote.Status, &apos;Accepted&apos;), &apos;✅ SELECTED QUOTE IS ACCEPTED&apos;, &apos;⚠️ SELECTED QUOTE IS STILL &quot;IN REVIEW&quot;&apos;))</formula>
+    <label>Quote Selection Check</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

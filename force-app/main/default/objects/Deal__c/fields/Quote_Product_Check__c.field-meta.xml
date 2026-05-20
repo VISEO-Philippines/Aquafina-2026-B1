@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quote_Product_Check__c</fullName>
+    <externalId>false</externalId>
+    <formula>IF( Opportunity__r.SyncedQuote.LineItemCount=0, &apos;❌ SELECTED QUOTE HAS NO PRODUCTS&apos;, &apos;✅ SELECTED QUOTE HAS PRODUCTS&apos;)</formula>
+    <label>Quote Product Check</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Customer_Industry_Type__c</fullName>
+    <businessStatus>Active</businessStatus>
+    <description>Depending on this, aquafina will price their products accordingly</description>
+    <label>Customer Industry Type</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Distributor</fullName>
+                <default>false</default>
+                <label>Distributor</label>
+            </value>
+            <value>
+                <fullName>Restaurateur</fullName>
+                <default>false</default>
+                <label>Restaurateur</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
