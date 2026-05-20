@@ -1,5 +1,5 @@
 @IsTest
-    public class DealSummaryControllerTest {
+    private class DealSummaryControllerTest {
     /*
      * Creates minimal baseline data shared across all tests.
      * Only includes reccords required for most scenarios:
@@ -30,32 +30,53 @@
         * - Validates correct calculation of totals and discount percentage
         */
 
-        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
-        PricebookEntry pbe = [SELECT Id FROM PricebookEntry LIMIT 1];
+        // Create a test user to simulate a Sales Rep persona 
+        User salesRep = TestDataFactory.createSalesRepUser();
         
-        // Create a quote linked to opportunity
-        Quote q = TestDataFactory.createQuote(opp.Id);
+        Assert.isNotNull(salesRep, 'Sales Rep user should be created');
+        Assert.isNotNull(salesRep.Id, 'User should have a valid Id after insert');
+        Assert.areEqual(salesRep.Id, UserInfo.getUserId(),'code should be running as the sales rep user');
 
-        // Apply 10% discount (100 -> 90)
-        TestDataFactory.createQuoteLineItem(q.Id, pbe.Id, 90);
 
-        // Link quote as synced
-        opp.SyncedQuoteId = q.Id;
-        update opp;
+        System.runAs(salesRep){
+            Account acc = [SELECT Id FROM Account LIMIT 1];
+            Opportunity opp = TestDataFactory.createOpportunity(acc.Id);
+           
+            PricebookEntry pbe = [
+                SELECT Id 
+                FROM PricebookEntry 
+                WHERE UnitPrice = 100 
+                LIMIT 1
+            ];
 
-        // Execute the method being tested
-        Test.startTest();
-        DealSummaryDTO result = 
-            DealSummaryController.getDealSummary(opp.Id);
-        Test.stopTest();
+            
+            // Create a quote linked to opportunity
+            Quote q = TestDataFactory.createQuote(opp.Id);
 
-        // Assertions to validate expected outcomes
-        Assert.isNotNull(result, 'Result should not be null');
-        Assert.areEqual(q.Id, result.quote.Id, 'Quote should be correctly linked in the result');
-        Assert.areEqual(100, result.totalList, 'Total list price should be correct');
-        Assert.areEqual(90, result.totalDiscounted, 'Total discounted price should be correct');
-        Assert.areEqual(10, result.discountPercent, 'Discount percentage should be correct');
+            // Apply 10% discount (100 -> 90)
+            TestDataFactory.createQuoteLineItem(q.Id, pbe.Id, 90);
+
+            // Link quote as synced
+            opp.SyncedQuoteId = q.Id;
+            update opp;
+
+            // Execute the method being tested
+            Test.startTest();
+            DealSummaryDTO result = 
+                DealSummaryController.getDealSummary(opp.Id);
+            Test.stopTest();
+
+            // Assertions to validate expected outcomes
+            Assert.isNotNull(result, 'Result should not be null');
+            Assert.areEqual(q.Id, result.quote.Id, 'Quote should be correctly linked in the result');
+            Assert.areEqual(100, result.totalList, 'Total list price should be correct');
+            Assert.areEqual(90, result.totalDiscounted, 'Total discounted price should be correct');
+            Assert.areEqual(10, result.discountPercent, 'Discount percentage should be correct');
+    
+             }
     }
+
+        
 
     /*
     * Scenario: Null Opportunity Id is passed
@@ -74,8 +95,13 @@
 
     @IsTest
     static void testDealSummary_NoSyncedQuote() {
-
-        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+        Account acc = [SELECT Id FROM Account LIMIT 1];
+        Opportunity opp = [
+            SELECT Id
+            FROM Opportunity 
+            WHERE AccountId = :acc.Id
+            LIMIT 1
+            ];
 
         Test.startTest();
         DealSummaryDTO result =
@@ -85,6 +111,34 @@
         Assert.isNotNull(result, 'Result should not be null');
         Assert.isNull(result.quote, 'Quote should be null when no synced quote exists');
     }
+
+    @IsTest
+    static void testDealSummary_MissingQuoteLineItems() {
+        Account acc = [SELECT Id FROM Account LIMIT 1];
+
+        Opportunity opp = [
+            SELECT Id
+            FROM Opportunity 
+            WHERE AccountId = :acc.Id
+            LIMIT 1
+            ];
+        Quote q = TestDataFactory.createQuote(opp.Id);
+
+        // Link quote as synced without line items
+        opp.SyncedQuoteId = q.Id;
+        update opp;
+
+        Test.startTest();
+        DealSummaryDTO result =
+            DealSummaryController.getDealSummary(opp.Id);
+        Test.stopTest();
+
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isNotNull(result.quote, 'Quote should not be null');
+        Assert.areEqual(0, result.totalList, 'Total list price should be zero when no line items exist');
+        Assert.areEqual(0, result.totalDiscounted, 'Total discounted price should be zero when no line items exist');
+    }
+
 }
 
 
