@@ -6,11 +6,12 @@
             </h1>
             <p class="slds-col slds-size_12-of-12 slds-p-around_x-small slds-p-bottom_x-small slds-align_absolute-center"  >
                 <lightning-formatted-text value="Checks whether opportunity is ready for commercialization."></lightning-formatted-text>
+                <!-- <lightning-formatted-text value={hasPrimary}></lightning-formatted-text> -->
             </p>
             
             <template  lwc:if={pseudoVar}>
                 <div class="slds-col slds-size_12-of-12" >
-                    <lightning-progress-indicator current-step={currentStep} has-error="true" type="path" variant="base">
+                    <lightning-progress-indicator current-step={currentStep2} has-error="true" type="path" variant="base">
                         <lightning-progress-step label="New" value="0"></lightning-progress-step>
                         <lightning-progress-step label="Quote sent" value="1"></lightning-progress-step>
                         <lightning-progress-step label="Quote approved" value="2"></lightning-progress-step>
