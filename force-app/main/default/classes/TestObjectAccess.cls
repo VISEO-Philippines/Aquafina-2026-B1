@@ -18,10 +18,10 @@ public with sharing class TestObjectAccess {
 
     @TestSetup
     static void setupData(){
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
-        User sRepSpain1 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESEREP'];
-        User sRepFrance2 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRSREP'];
-        User sRepSpain2 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESWREP'];
+        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com', 'France'); //[SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
+        User sRepSpain1 = TestDataFactory.createTestUserSalesRep('sRepSpain1@test.com', 'Spain');    //[SELECT Id, IsActive FROM User WHERE Alias = 'ESEREP'];
+        User sRepFrance2 = TestDataFactory.createTestUserSalesRep('sRepFrance2@test.com', 'France'); //[SELECT Id, IsActive FROM User WHERE Alias = 'FRSREP'];
+        User sRepSpain2 = TestDataFactory.createTestUserSalesRep('sRepSpain2@test.com', 'Spain');    //[SELECT Id, IsActive FROM User WHERE Alias = 'ESWREP'];
 
         if(!sRepFrance1.IsActive) {
             sRepFrance1.IsActive = true;
@@ -29,18 +29,22 @@ public with sharing class TestObjectAccess {
         }
 
         System.runAs(sRepFrance1) {
-            Lead l = new Lead(LastName='Smith', Company='TestCo', Territory__c='France', Email='smith@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
-            insert l;
+            // Lead l = new Lead(LastName='Smith', Company='TestCo', Territory__c='France', Email='smith@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
+            // insert l;
             
-            Lead l2 = new Lead(LastName='Smitheee', Company='TestCo23', Territory__c='France',Email='smithee@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
-            insert l2;
+            // Lead l2 = new Lead(LastName='Smitheee', Company='TestCo23', Territory__c='France',Email='smithee@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
+            // insert l2;
+            
+            Lead frenchTestLead1 = TestDataFactory.createTestLead('frtestlead1@example.com','France', sRepFrance1.Id);
+            Lead frenchTestLead2 = TestDataFactory.createTestLead('frtestlead2@example.com','France', sRepFrance1.Id);
         }        
 
         switchUser(sRepFrance1, sRepSpain1);
 
         System.runAs(sRepSpain1) {
-            Lead l2 = new Lead(LastName='Wesson', Company='TesCo', Territory__c='Spain',Email='wesson@example.com',Status = 'In Progress' ,OwnerId=sRepSpain1.Id);
-            insert l2;
+            //Lead l2 = new Lead(LastName='Wesson', Company='TesCo', Territory__c='Spain',Email='wesson@example.com',Status = 'In Progress' ,OwnerId=sRepSpain1.Id);
+            //insert l2;
+            Lead spanishTestLead1 = TestDataFactory.createTestLead('estestlead1@example.com','Spain', sRepSpain1.Id);
         }
 
         if(sRepSpain1.IsActive) {
@@ -52,10 +56,10 @@ public with sharing class TestObjectAccess {
     // This test ensures that leads are shared within their respective regions (France or Spain)
     @IsTest
     public static void testSalesRepAccessOnLeads() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
-        User sRepSpain1 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESEREP'];
-        User sRepFrance2 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRSREP'];
-        User sRepSpain2 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESWREP'];
+        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepSpain1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepSpain1@test.com'];
+        User sRepFrance2 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance2@test.com'];
+        User sRepSpain2 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepSpain2@test.com'];
 
 
         if(!sRepFrance1.IsActive) {
@@ -64,7 +68,7 @@ public with sharing class TestObjectAccess {
         }
 
         System.runAs(sRepFrance1) {
-            List<Lead> leads_f1 = [SELECT Id FROM Lead WHERE Company = 'TestCo' OR Company = 'TestCo23'];
+            List<Lead> leads_f1 = [SELECT Id FROM Lead WHERE Email = 'frtestlead1@example.com' OR Email = 'frtestlead2@example.com'];
 
             System.assertEquals(2, leads_f1.size(), 'FRNREP leads not properly initialized.');
         }
@@ -72,7 +76,7 @@ public with sharing class TestObjectAccess {
         switchUser(sRepFrance1, sRepSpain1);
 
         System.runAs(sRepSpain1) {
-            List<Lead> leads_s1 = [SELECT Id FROM Lead WHERE Company = 'Tesco'];
+            List<Lead> leads_s1 = [SELECT Id FROM Lead WHERE Email = 'estestlead1@example.com'];
 
             System.assertEquals(1, leads_s1.size(), 'ESEREP lead not properly initialized.');
         }
@@ -112,11 +116,11 @@ public with sharing class TestObjectAccess {
     // This test ensures that Accounts, Contacts, and Opportunities are not shared.
     @IsTest
     public static void testSalesRepAccessOnAccOppCon() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
-        User sRepSpain1 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESEREP'];
-        User sRepFrance2 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRSREP'];
-        User sRepSpain2 = [SELECT Id, IsActive FROM User WHERE Alias = 'ESWREP'];
-
+        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepSpain1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepSpain1@test.com'];
+        User sRepFrance2 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance2@test.com'];
+        User sRepSpain2 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepSpain2@test.com'];
+        
         if(!sRepFrance1.IsActive) {
             sRepFrance1.IsActive = true;
             update sRepFrance1;
@@ -135,7 +139,7 @@ public with sharing class TestObjectAccess {
         // Get a Lead not owned by sRepFrance1 but by his co-role in the same region
         // convert the lead and check if the original lead owner can see the resulting opportunity, account, contact
         System.runAs(sRepFrance2) {
-            List<Lead> leads = [SELECT Id FROM Lead WHERE OwnerId = :sRepFrance1.Id AND Territory__c = 'France' AND Status = 'In Progress' LIMIT 1];
+            List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'frtestlead1@example.com'];
 
             System.assertEquals(1, leads.size(), 'No available leads passing criteria: sRepFrance2(FRSREP) must see a Lead owned by sRepFrance1(FRNREP)');
             
@@ -144,19 +148,17 @@ public with sharing class TestObjectAccess {
             lc.setConvertedStatus('Qualified');
             lc.setOwnerId(sRepFrance2.Id);
             Database.LeadConvertResult lcr = Database.convertLead(lc);
+			
+            
+            System.assert(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
 
-            if (lcr.isSuccess()) {
-                accountId = lcr.getAccountId();
-                contactId = lcr.getContactId();
-                opportunityId = lcr.getOpportunityId();
-                
-                System.debug('Account Created: ' + accountId);
-                System.debug('Contact Created: ' + contactId);
-                System.debug('Opportunity Created: ' + opportunityId);
-            } else {
-                System.debug('Conversion Error. Was not able to convert lead.');
-            }
-
+            accountId = lcr.getAccountId();
+            contactId = lcr.getContactId();
+            opportunityId = lcr.getOpportunityId();
+            
+            System.debug('Account Created: ' + accountId);
+            System.debug('Contact Created: ' + contactId);
+            System.debug('Opportunity Created: ' + opportunityId);
         }
 
         Test.startTest();
