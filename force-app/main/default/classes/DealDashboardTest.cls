@@ -1,0 +1,88 @@
+@IsTest
+private class DealDashboardTest {
+    @TestSetup
+    static void setupData(){
+        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France');
+		
+        System.runAs(sRepFrance1) {
+            Lead testLead = TestDataFactory.createTestLead('frtestlead@example.com','France', sRepFrance1.Id);
+
+            Database.LeadConvert lc = new Database.LeadConvert();
+            lc.setLeadId(testLead.Id);
+            lc.setConvertedStatus('Qualified');
+            lc.setOwnerId(sRepFrance1.Id);
+            lc.setOpportunityName('Tech Solutions Inc.-');
+            Database.LeadConvertResult lcr = Database.convertLead(lc);
+
+        
+            Assert.isTrue(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
+        }
+    }
+
+    @IsTest
+    private static void DealDashboardOpportunityTest() {
+        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+
+        TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
+        // CHORE: Declared this to make accessing values easier, might be better to use prodSet directly
+        PriceBookEntry pbe = prodSet.pbe;
+		Pricebook2 pb = prodSet.pb;
+
+        List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
+        Opportunity opp = [SELECT Id FROM Opportunity Where Name = 'Tech Solutions Inc.-'];
+
+        Assert.areEqual(1, leads.size(), 'Lead not initialized properly in setup: frtestlead@example.com');
+
+        if(!sRepFrance1.IsActive) {
+            sRepFrance1.IsActive = true;
+            update sRepFrance1;
+        }
+
+        Quote new_quote;
+
+        System.runAs(sRepFrance1) {
+            new_quote = new Quote(
+                Name = 'Test Opportunity Quote for 100 Bottles',
+                OpportunityId = opp.Id,
+                Pricebook2Id = pb.Id
+            );
+
+            insert new_quote;
+            QuoteLineItem qli = new QuoteLineItem(
+                QuoteId = new_quote.Id,
+                PricebookEntryId = pbe.Id, 
+                Quantity = 100,
+                UnitPrice = 3.00
+            );
+            insert qli;
+
+            update new Opportunity(
+                Id = opp.Id,
+                SyncedQuoteId = new_quote.Id
+            );
+
+            Test.startTest();
+            // Test Deal Dashboard for created opportunity
+            DealDashboard.DealData dd = DealDashboard.getDealData(opp.Id);
+            Test.stopTest();
+            
+            // Check if the struct was populated - opportunity contact role wasnt added.
+            Assert.areEqual(opp.Id, dd.opp.Id, 'getDealData got a mismatched oppId when populating the DealData - Something is terribly wrong');
+            Assert.areEqual(new_quote.Id, dd.quote.Id, 'getDealData got a mismatched quote when querying related objects to opportunity');
+            Assert.areEqual(1, dd.lineItems.size(), 'getDealData might have a mismatched quote, as the created quote does not have a matching number of line items as was initialized.');
+
+        }
+    }
+
+    @IsTest
+    private static void DealDashboardEmptyOpportunityTest() {
+        Boolean isError = false;
+        // Test Deal Dashboard using non existent opportunity OR opportunity inaccessible by this user
+        try {
+            DealDashboard.DealData dd2 = DealDashboard.getDealData('006gL000A0ZyjtAQAJ'); // This hardcoded id is not valid
+        } catch (AuraHandledException e) {
+            isError = true;
+        }
+        Assert.isTrue(isError, 'AuraHandledException was being expected from nonexistent oppID.');
+    }
+}

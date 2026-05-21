@@ -18,12 +18,14 @@ public with sharing class DealDashboard {
             Id quoteId;
             data.opp = OpportunityModel.getOpportunity(oppId);
             
-            // data.opp = DealDashboardModel.get_Opp_By_Id()
-            quoteId = data.opp.SyncedQuoteId;
+            if (data.opp == null) {
+                throw new AuraHandledException('Failed to get Opportunity record for Deal Dashboard.');
+            }
 
             // TODO: merge this with SOQL for Quote Line items
             // in this format-ish: SELECT Id, (SELECT Id FROM QuoteLineItems) FROM Quote where Id =: quoteId
             if (data.opp.SyncedQuoteId != null) {
+                quoteId = data.opp.SyncedQuoteId;
                 List<Quote> quotes = QuoteModel.getQuote(quoteId);
                 if (!quotes.isEmpty()) {
                     data.quote = quotes[0];
@@ -47,7 +49,7 @@ public with sharing class DealDashboard {
 
 
         } catch (Exception e) {
-            throw new AuraHandledException(e.getMessage());
+            throw new AuraHandledException('Failed to fetch DealData for Deal Dashboard. Error: ' + e.getMessage());
         }
     }
 }
