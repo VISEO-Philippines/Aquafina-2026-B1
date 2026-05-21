@@ -29,12 +29,6 @@ public with sharing class TestObjectAccess {
         }
 
         System.runAs(sRepFrance1) {
-            // Lead l = new Lead(LastName='Smith', Company='TestCo', Territory__c='France', Email='smith@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
-            // insert l;
-            
-            // Lead l2 = new Lead(LastName='Smitheee', Company='TestCo23', Territory__c='France',Email='smithee@example.com' ,Status = 'In Progress', OwnerId=sRepFrance1.Id);
-            // insert l2;
-            
             Lead frenchTestLead1 = TestDataFactory.createTestLead('frtestlead1@example.com','France', sRepFrance1.Id);
             Lead frenchTestLead2 = TestDataFactory.createTestLead('frtestlead2@example.com','France', sRepFrance1.Id);
         }        
@@ -42,8 +36,6 @@ public with sharing class TestObjectAccess {
         switchUser(sRepFrance1, sRepSpain1);
 
         System.runAs(sRepSpain1) {
-            //Lead l2 = new Lead(LastName='Wesson', Company='TesCo', Territory__c='Spain',Email='wesson@example.com',Status = 'In Progress' ,OwnerId=sRepSpain1.Id);
-            //insert l2;
             Lead spanishTestLead1 = TestDataFactory.createTestLead('estestlead1@example.com','Spain', sRepSpain1.Id);
         }
 
@@ -167,10 +159,6 @@ public with sharing class TestObjectAccess {
             List<Opportunity> matched_opp = [SELECT OwnerId FROM Opportunity WHERE Id = :opportunityId];
             List<Account> matched_acc = [SELECT OwnerId FROM Account WHERE Id = :accountId];
             List<Contact> matched_con = [SELECT OwnerId FROM Contact WHERE Id = :contactId];
-            
-            if (matched_opp.size() > 0) {
-                System.debug('ERROR: sRepFrance1 with ID: '+ sRepFrance1.Id +' found a matched opp with ownerID ' + matched_opp[0].OwnerId);
-            }
             
             System.assertEquals(0,matched_opp.size(), 'Found opp when opp should not be visible.');
             System.assertEquals(0,matched_acc.size(), 'Found acc when acc should not be visible.');
