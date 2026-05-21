@@ -62,5 +62,48 @@ public with sharing class TestDataFactory {
 
         return testLead;
     }
+    
+    // There might be some standards for making struct-like classes like these.
+    // also this might be visible to non-test classes which it shouldnt be for now
+    public class ProdSet{
+        public Product2 prod;
+        public PriceBookEntry stdpbe;
+        public PriceBookEntry pbe;
+        public PriceBook2 pb;
+    }
+    
+    // this seems awful, check if we can fix the return for this, maybe a namedtuple 
+    public static ProdSet generateProdSet() {
+        ProdSet prodSet = new ProdSet();
+        Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
+        insert prod;
+        prodSet.prod = prod;
+        Id stdPbId = Test.getStandardPricebookId();
+    
+        PricebookEntry stdPbe = new PricebookEntry(
+            Pricebook2Id = stdPbId, 
+            Product2Id = prod.Id, 
+            UnitPrice = 3, 
+            IsActive = true
+        );
+        insert stdPbe;
+		prodSet.stdpbe = stdPbe;
+        
+        Pricebook2 pb = new Pricebook2(
+            Name = 'Special Discount PB',
+            IsActive = true
+        );
+        insert pb;
+        prodSet.pb = pb;
+
+        PricebookEntry pbe = new PricebookEntry(
+            Pricebook2Id = pb.Id, Product2Id = prod.Id, 
+            UnitPrice = 3, IsActive = true
+        );
+        insert pbe;
+        prodSet.pbe = pbe;
+        
+		return prodSet;
+    }
 
 }

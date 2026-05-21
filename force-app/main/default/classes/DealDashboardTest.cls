@@ -26,33 +26,13 @@ private class DealDashboardTest {
         
         Assert.isTrue(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
         
-        // TODO: Move these Product related data creation into either a data factory or in setup
-        // low priority since this is only used for this test.
-        Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
-        insert prod;
-
-        Id stdPbId = Test.getStandardPricebookId();
-    
-        PricebookEntry stdPbe = new PricebookEntry(
-            Pricebook2Id = stdPbId, 
-            Product2Id = prod.Id, 
-            UnitPrice = 3, 
-            IsActive = true
-        );
-        insert stdPbe;
-
-        Pricebook2 pb = new Pricebook2(
-            Name = 'Special Discount PB',
-            IsActive = true
-        );
-        insert pb;
-
-        PricebookEntry pbe = new PricebookEntry(
-            Pricebook2Id = pb.Id, Product2Id = prod.Id, 
-            UnitPrice = 3, IsActive = true
-        );
-
-        insert pbe;
+        TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
+        // CHORE: Declared this to make access easier, might be better to use prodSet directly
+        Product2 prod = prodSet.prod;
+        PriceBookEntry stdPbe = prodSet.stdpbe;
+        PriceBookEntry pbe = prodSet.pbe;
+		Pricebook2 pb = prodSet.pb;
+		
 
         DealDashboard.DealData dd;
 
