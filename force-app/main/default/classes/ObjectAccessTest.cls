@@ -158,10 +158,6 @@ public with sharing class ObjectAccessTest {
             List<Account> matched_acc = [SELECT OwnerId FROM Account WHERE Id = :accountId];
             List<Contact> matched_con = [SELECT OwnerId FROM Contact WHERE Id = :contactId];
             
-            if (matched_opp.size() > 0) {
-                System.debug('ERROR: sRepFrance1 with ID: '+ sRepFrance1.Id +' found a matched opp with ownerID ' + matched_opp[0].OwnerId);
-            }
-            
             Assert.areEqual(0, matched_opp.size(), 'Found opp when opp should not be visible.');
             Assert.areEqual(0,matched_acc.size(), 'Found acc when acc should not be visible.');
             Assert.areEqual(0,matched_con.size(), 'Found con when con should not be visible.');
