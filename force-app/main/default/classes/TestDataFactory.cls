@@ -1,16 +1,18 @@
 @isTest
 public with sharing class TestDataFactory {
     // implement common test users to be used by tests here
-    public static User createTestUserSalesRep(String region) {
+    public static User createTestUserSalesRep(String uname, String region) {
         // Get User Profile for Sales Representative
         Profile p = [SELECT Id FROM Profile WHERE Name = 'Sales Profile' LIMIT 1];
+        
         // Get User Role (== is case-insensitive)
+        UserRole role;
         if (region == 'france') {
-            UserRole role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
+            role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
         } else if (region == 'spain') {
-            UserRole role = [SELECT Id FROM UserRole WHERE Name = 'ES Sales Representative' LIMIT 1];
+            role = [SELECT Id FROM UserRole WHERE Name = 'ES Sales Representative' LIMIT 1];
         } else {
-            UserRole role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
+            role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
         }
         
         Integer rand = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
@@ -24,7 +26,7 @@ public with sharing class TestDataFactory {
             FirstName = 'SalesRep',
             LastName = region,
             Alias = 'srep' + region.substring(0,1).toLowerCase(),
-            Username = uniqueUsername,
+            Username = uname,
             Email = uniqueUsername,              // can be same as username
             EmailEncodingKey = 'UTF-8',
             LanguageLocaleKey = 'en_US',
@@ -39,9 +41,9 @@ public with sharing class TestDataFactory {
         return u;
     }
 
-    public static Lead createTestLead(String territory, Id ownerId) {
+    public static Lead createTestLead(String email, String territory, Id ownerId) {
         // substring is overloaded (start end) like python [start:end] , OR (start) [start:]
-        String formatted = String.isNotBlank(territory) ? original.substring(0, 1).toUpperCase() + original.substring(1) : original;
+        String formatted = String.isNotBlank(territory) ? territory.substring(0, 1).toUpperCase() + territory.substring(1) : territory;
         Integer rand = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
         Lead testLead = new Lead(
             FirstName = 'Tessie' + rand,
@@ -49,7 +51,7 @@ public with sharing class TestDataFactory {
             Company = 'Test Solutions Inc.' + rand,
             Status = 'To Contact',
             LeadSource = 'Web',
-            Email = 'tcoder'+ rand +'@example.com',
+            Email = email,
             Territory__c = territory,
             OwnerId = ownerId
         );

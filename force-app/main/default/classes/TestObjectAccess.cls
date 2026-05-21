@@ -130,7 +130,7 @@ public with sharing class TestObjectAccess {
         Id contactId;
         Id opportunityId;
 
-        Test.startTest();
+
 
         // Get a Lead not owned by sRepFrance1 but by his co-role in the same region
         // convert the lead and check if the original lead owner can see the resulting opportunity, account, contact
@@ -197,8 +197,6 @@ public with sharing class TestObjectAccess {
             sRepFrance2.IsActive = false;
             update sRepFrance2;
         }
-
-        Test.stopTest();
     }
 
 }

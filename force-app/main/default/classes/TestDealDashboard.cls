@@ -1,16 +1,10 @@
 @IsTest
 private class TestDealDashboard {
-
-    private static List<User> users;
-    private static List<Lead> leads;
-
     @TestSetup
     static void setupData(){
         // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
-        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('France');
-        
-        Id opportunityId;
-
+        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France');
+		
         // Lead testLead = new Lead(
         //     FirstName = 'Juan',
         //     LastName = 'Dela Cruz',
@@ -22,15 +16,25 @@ private class TestDealDashboard {
         //     OwnerId = sRepFrance1.Id
         // );
         // insert testLead;
+		
+        System.runAs(sRepFrance1) {
+            Lead testLead = TestDataFactory.createTestLead('frtestlead@example.com','France', sRepFrance1.Id);
+        }
+        
+    }
 
-        Lead testLead = TestDataFactory.createTestLead('France', sRepFrance1.Id);
-
+    @IsTest
+    private static void DealDashboardOpportunityTest() {
+        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        Lead testLead = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
+		
+        Id opportunityId;
 
         Database.LeadConvert lc = new Database.LeadConvert();
         lc.setLeadId(testLead.Id);
         lc.setConvertedStatus('Qualified');
         lc.setOwnerId(sRepFrance1.Id);
-        lc.setOpportunityName(testLead.Name + ' Opp');
+        lc.setOpportunityName('Tech Solutions Inc.-');
         Database.LeadConvertResult lcr = Database.convertLead(lc);
 
         if (lcr.isSuccess()) {
@@ -60,33 +64,20 @@ private class TestDealDashboard {
         );
         insert pb;
 
-
-
         PricebookEntry pbe = new PricebookEntry(
             Pricebook2Id = pb.Id, Product2Id = prod.Id, 
             UnitPrice = 3, IsActive = true
         );
 
         insert pbe;
-    }
-
-    @IsTest
-    private static void DealDashboardEmptyOpportunityTest() {
-        
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
+        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
 
         DealDashboard.DealData dd;
 
-        List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'juantestlead@example.com'];
-        Product2 prod = [SELECT Id FROM Product2 WHERE Name = 'Test Water Bottle'];
+        List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
         Opportunity opp = [SELECT Id FROM Opportunity Where Name = 'Tech Solutions Inc.-'];
-        Pricebook2 pb = [SELECT Id FROM Pricebook2 Where Name = 'Special Discount PB'];
-        PricebookEntry pbe = [SELECT Id FROM PricebookEntry Where Pricebook2Id = :pb.Id];
 
-        if (leads.size() < 1) {
-            System.debug('Lead was not initialized properly in setup.');
-            return;
-        }
+        System.assertEquals(1, leads.size());
 
         if(!sRepFrance1.IsActive) {
             sRepFrance1.IsActive = true;
@@ -111,7 +102,6 @@ private class TestDealDashboard {
             );
             insert qli;
 
-            
             update new Opportunity(
                 Id = opp.Id,
                 SyncedQuoteId = new_quote.Id
@@ -120,21 +110,25 @@ private class TestDealDashboard {
             Test.startTest();
             // Test Deal Dashboard for created opportunity
             dd = DealDashboard.getDealData(opp.Id);
-
-            Boolean isError = false;
-            // Test Deal Dashboard using non existent opportunity OR opportunity inaccessible by this user
-            try {
-                DealDashboard.DealData dd2 = DealDashboard.getDealData('006gL000A0ZyjtAQAJ'); // This hardcoded id is not valid
-            } catch (AuraHandledException e) {
-                isError = true;
-            }
             Test.stopTest();
             
             // Check if the struct was populated - opportunity contact role wasnt added.
             System.assertEquals(opp.Id, dd.opp.Id);
             System.assertEquals(new_quote.Id, dd.quote.Id);
             System.assertEquals(1, dd.lineItems.size());
-            System.assert(isError, 'AuraHandledException thrown as expected from nonexistent oppID.');
+
         }
+    }
+    
+    @IsTest
+    private static void DealDashboardEmptyOpportunityTest() {
+        Boolean isError = false;
+        // Test Deal Dashboard using non existent opportunity OR opportunity inaccessible by this user
+        try {
+            DealDashboard.DealData dd2 = DealDashboard.getDealData('006gL000A0ZyjtAQAJ'); // This hardcoded id is not valid
+        } catch (AuraHandledException e) {
+            isError = true;
+        }
+        System.assert(isError, 'AuraHandledException thrown as expected from nonexistent oppID.');
     }
 }
