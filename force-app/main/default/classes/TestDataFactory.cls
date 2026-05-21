@@ -2,7 +2,17 @@
 public with sharing class TestDataFactory {
 
     public static User createSalesRepUser() {
-        Profile p = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        List<Profile> profiles = [
+            SELECT Id
+            FROM Profile
+            WHERE Name = 'Standard User' 
+            LIMIT 1];
+
+       List<UserRole> roles = [
+            SELECT Id
+            FROM UserRole
+            WHERE Name = 'SR_France_South' 
+            LIMIT 1];
 
         String unique = String.valueOf(System.currentTimeMillis());
 
@@ -14,8 +24,9 @@ public with sharing class TestDataFactory {
             TimeZoneSidKey = 'Asia/Manila',
             LocaleSidKey = 'en_US',
             EmailEncodingKey = 'UTF-8',
-            ProfileId = p.Id,
-            LanguageLocaleKey = 'en_US'
+            ProfileId = profiles[0].Id,
+            LanguageLocaleKey = 'en_US',
+            UserRoleId = roles[0].Id
         );
         insert u;
         return u;
