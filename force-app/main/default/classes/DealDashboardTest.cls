@@ -1,26 +1,12 @@
 @IsTest
-private class TestDealDashboard {
+private class DealDashboardTest {
     @TestSetup
     static void setupData(){
-        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
         User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France');
-		
-        // Lead testLead = new Lead(
-        //     FirstName = 'Juan',
-        //     LastName = 'Dela Cruz',
-        //     Company = 'Tech Solutions Inc.',
-        //     Status = 'To Contact',
-        //     LeadSource = 'Web',
-        //     Email = 'juantestlead@example.com',
-        //     Territory__c = 'France',
-        //     OwnerId = sRepFrance1.Id
-        // );
-        // insert testLead;
 		
         System.runAs(sRepFrance1) {
             Lead testLead = TestDataFactory.createTestLead('frtestlead@example.com','France', sRepFrance1.Id);
         }
-        
     }
 
     @IsTest
@@ -38,7 +24,7 @@ private class TestDealDashboard {
         Database.LeadConvertResult lcr = Database.convertLead(lc);
 
         
-        System.assert(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
+        Assert.isTrue(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
         
         // TODO: Move these Product related data creation into either a data factory or in setup
         // low priority since this is only used for this test.
@@ -73,7 +59,7 @@ private class TestDealDashboard {
         List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
         Opportunity opp = [SELECT Id FROM Opportunity Where Name = 'Tech Solutions Inc.-'];
 
-        System.assertEquals(1, leads.size());
+        Assert.areEqual(1, leads.size(), 'Lead not initialized properly in setup: frtestlead@example.com');
 
         if(!sRepFrance1.IsActive) {
             sRepFrance1.IsActive = true;
@@ -109,9 +95,9 @@ private class TestDealDashboard {
             Test.stopTest();
             
             // Check if the struct was populated - opportunity contact role wasnt added.
-            System.assertEquals(opp.Id, dd.opp.Id);
-            System.assertEquals(new_quote.Id, dd.quote.Id);
-            System.assertEquals(1, dd.lineItems.size());
+            Assert.areEqual(opp.Id, dd.opp.Id, 'getDealData got a mismatched oppId when populating the DealData - Something is terribly wrong');
+            Assert.areEqual(new_quote.Id, dd.quote.Id, 'getDealData got a mismatched quote when querying related objects to opportunity');
+            Assert.areEqual(1, dd.lineItems.size(), 'getDealData might have a mismatched quote, as the created quote does not have a matching number of line items as was initialized.');
 
         }
     }
@@ -125,6 +111,6 @@ private class TestDealDashboard {
         } catch (AuraHandledException e) {
             isError = true;
         }
-        System.assert(isError, 'AuraHandledException was being expected from nonexistent oppID.');
+        Assert.isTrue(isError, 'AuraHandledException was being expected from nonexistent oppID.');
     }
 }

@@ -1,7 +1,4 @@
 public with sharing class QuoteModel {
-
-
-
     // TODO: merge this with SOQL for Quote Line items
     // in this format-ish: SELECT Id, (SELECT Id FROM QuoteLineItems) FROM Quote where Id =: quoteId
     @AuraEnabled(cacheable=true)

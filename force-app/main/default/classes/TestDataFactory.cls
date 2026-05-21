@@ -40,7 +40,9 @@ public with sharing class TestDataFactory {
 
         return u;
     }
-
+	
+    // TODO: Check if it is possible to refactor this to easily test role-based sharing instead of Territory__c field based sharing
+    // perhaps allow territory to be null? <- recheck in org
     public static Lead createTestLead(String email, String territory, Id ownerId) {
         // substring is overloaded (start end) like python [start:end] , OR (start) [start:]
         String formatted = String.isNotBlank(territory) ? territory.substring(0, 1).toUpperCase() + territory.substring(1) : territory;
@@ -49,7 +51,7 @@ public with sharing class TestDataFactory {
             FirstName = 'Tessie' + rand,
             LastName = 'Coder' + rand,
             Company = 'Test Solutions Inc.' + rand,
-            Status = 'To Contact',
+            Status = 'In Progress',
             LeadSource = 'Web',
             Email = email,
             Territory__c = territory,
