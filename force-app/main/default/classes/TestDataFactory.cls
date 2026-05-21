@@ -7,9 +7,9 @@ public with sharing class TestDataFactory {
         
         // Get User Role (== is case-insensitive)
         UserRole role;
-        if (region == 'france') {
+        if (region == 'France') {
             role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
-        } else if (region == 'spain') {
+        } else if (region == 'Spain') {
             role = [SELECT Id FROM UserRole WHERE Name = 'ES Sales Representative' LIMIT 1];
         } else {
             role = [SELECT Id FROM UserRole WHERE Name = 'FR Sales Representative' LIMIT 1];
@@ -17,7 +17,7 @@ public with sharing class TestDataFactory {
         
         Integer rand = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
         // Create unique username
-        String uniqueUsername = 'salesrep_' + region.replaceAll('\\s','') + '_' 
+        String uniqueEmail = 'salesrep_' + region.replaceAll('\\s','') + '_' 
                                 + rand
                                 + '@example.com';
 
@@ -27,7 +27,7 @@ public with sharing class TestDataFactory {
             LastName = region,
             Alias = 'srep' + region.substring(0,1).toLowerCase(),
             Username = uname,
-            Email = uniqueUsername,              // can be same as username
+            Email = uniqueEmail,              // can be same as username
             EmailEncodingKey = 'UTF-8',
             LanguageLocaleKey = 'en_US',
             LocaleSidKey = 'en_US',
@@ -45,7 +45,7 @@ public with sharing class TestDataFactory {
     // perhaps allow territory to be null? <- recheck in org
     public static Lead createTestLead(String email, String territory, Id ownerId) {
         // substring is overloaded (start end) like python [start:end] , OR (start) [start:]
-        String formatted = String.isNotBlank(territory) ? territory.substring(0, 1).toUpperCase() + territory.substring(1) : territory;
+        String formattedTerritory = String.isNotBlank(territory) ? territory.substring(0, 1).toUpperCase() + territory.substring(1) : territory;
         Integer rand = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
         Lead testLead = new Lead(
             FirstName = 'Tessie' + rand,
@@ -54,7 +54,7 @@ public with sharing class TestDataFactory {
             Status = 'In Progress',
             LeadSource = 'Web',
             Email = email,
-            Territory__c = territory,
+            Territory__c = formattedTerritory,
             OwnerId = ownerId
         );
 
@@ -72,7 +72,6 @@ public with sharing class TestDataFactory {
         public PriceBook2 pb;
     }
     
-    // this seems awful, check if we can fix the return for this, maybe a namedtuple 
     public static ProdSet generateProdSet() {
         ProdSet prodSet = new ProdSet();
         Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
@@ -105,5 +104,4 @@ public with sharing class TestDataFactory {
         
 		return prodSet;
     }
-
 }

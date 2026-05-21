@@ -6,35 +6,27 @@ private class DealDashboardTest {
 		
         System.runAs(sRepFrance1) {
             Lead testLead = TestDataFactory.createTestLead('frtestlead@example.com','France', sRepFrance1.Id);
+
+            Database.LeadConvert lc = new Database.LeadConvert();
+            lc.setLeadId(testLead.Id);
+            lc.setConvertedStatus('Qualified');
+            lc.setOwnerId(sRepFrance1.Id);
+            lc.setOpportunityName('Tech Solutions Inc.-');
+            Database.LeadConvertResult lcr = Database.convertLead(lc);
+
+        
+            Assert.isTrue(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
         }
     }
 
     @IsTest
     private static void DealDashboardOpportunityTest() {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
-        Lead testLead = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
-		
-        Id opportunityId;
 
-        Database.LeadConvert lc = new Database.LeadConvert();
-        lc.setLeadId(testLead.Id);
-        lc.setConvertedStatus('Qualified');
-        lc.setOwnerId(sRepFrance1.Id);
-        lc.setOpportunityName('Tech Solutions Inc.-');
-        Database.LeadConvertResult lcr = Database.convertLead(lc);
-
-        
-        Assert.isTrue(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
-        
         TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
-        // CHORE: Declared this to make access easier, might be better to use prodSet directly
-        Product2 prod = prodSet.prod;
-        PriceBookEntry stdPbe = prodSet.stdpbe;
+        // CHORE: Declared this to make accessing values easier, might be better to use prodSet directly
         PriceBookEntry pbe = prodSet.pbe;
 		Pricebook2 pb = prodSet.pb;
-		
-
-        DealDashboard.DealData dd;
 
         List<Lead> leads = [SELECT Id FROM Lead WHERE Email = 'frtestlead@example.com'];
         Opportunity opp = [SELECT Id FROM Opportunity Where Name = 'Tech Solutions Inc.-'];
@@ -71,7 +63,7 @@ private class DealDashboardTest {
 
             Test.startTest();
             // Test Deal Dashboard for created opportunity
-            dd = DealDashboard.getDealData(opp.Id);
+            DealDashboard.DealData dd = DealDashboard.getDealData(opp.Id);
             Test.stopTest();
             
             // Check if the struct was populated - opportunity contact role wasnt added.
