@@ -1,30 +1,36 @@
 @IsTest
 private class TestDealDashboard {
 
+    private static List<User> users;
+    private static List<Lead> leads;
+
     @TestSetup
     static void setupData(){
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
+        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
+        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('France');
         
         Id opportunityId;
 
-        Lead testLead = new Lead(
-            FirstName = 'Juan',
-            LastName = 'Dela Cruz',
-            Company = 'Tech Solutions Inc.',
-            Status = 'To Contact',
-            LeadSource = 'Web',
-            Email = 'juantestlead@example.com',
-            Territory__c = 'France',
-            OwnerId = sRepFrance1.Id
-        );
-        insert testLead;
+        // Lead testLead = new Lead(
+        //     FirstName = 'Juan',
+        //     LastName = 'Dela Cruz',
+        //     Company = 'Tech Solutions Inc.',
+        //     Status = 'To Contact',
+        //     LeadSource = 'Web',
+        //     Email = 'juantestlead@example.com',
+        //     Territory__c = 'France',
+        //     OwnerId = sRepFrance1.Id
+        // );
+        // insert testLead;
+
+        Lead testLead = TestDataFactory.createTestLead('France', sRepFrance1.Id);
 
 
         Database.LeadConvert lc = new Database.LeadConvert();
         lc.setLeadId(testLead.Id);
         lc.setConvertedStatus('Qualified');
         lc.setOwnerId(sRepFrance1.Id);
-        lc.setOpportunityName('Tech Solutions Inc.-');
+        lc.setOpportunityName(testLead.Name + ' Opp');
         Database.LeadConvertResult lcr = Database.convertLead(lc);
 
         if (lcr.isSuccess()) {
@@ -116,7 +122,7 @@ private class TestDealDashboard {
             dd = DealDashboard.getDealData(opp.Id);
 
             Boolean isError = false;
-            // Test Deal Dashboard using non existent opportunity
+            // Test Deal Dashboard using non existent opportunity OR opportunity inaccessible by this user
             try {
                 DealDashboard.DealData dd2 = DealDashboard.getDealData('006gL000A0ZyjtAQAJ'); // This hardcoded id is not valid
             } catch (AuraHandledException e) {
