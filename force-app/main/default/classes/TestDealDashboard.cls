@@ -37,14 +37,11 @@ private class TestDealDashboard {
         lc.setOpportunityName('Tech Solutions Inc.-');
         Database.LeadConvertResult lcr = Database.convertLead(lc);
 
-        if (lcr.isSuccess()) {
-            opportunityId = lcr.getOpportunityId();
-            
-            System.debug('Opportunity Created: ' + opportunityId);
-        } else {
-            System.debug('Conversion Error. Was not able to convert lead.');
-        }
-
+        
+        System.assert(lcr.isSuccess(), 'Conversion Error. Was not able to convert lead.');
+        
+        // TODO: Move these Product related data creation into either a data factory or in setup
+        // low priority since this is only used for this test.
         Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
         insert prod;
 
@@ -70,7 +67,6 @@ private class TestDealDashboard {
         );
 
         insert pbe;
-        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Alias = 'FRNREP'];
 
         DealDashboard.DealData dd;
 
@@ -119,7 +115,7 @@ private class TestDealDashboard {
 
         }
     }
-    
+
     @IsTest
     private static void DealDashboardEmptyOpportunityTest() {
         Boolean isError = false;
@@ -129,6 +125,6 @@ private class TestDealDashboard {
         } catch (AuraHandledException e) {
             isError = true;
         }
-        System.assert(isError, 'AuraHandledException thrown as expected from nonexistent oppID.');
+        System.assert(isError, 'AuraHandledException was being expected from nonexistent oppID.');
     }
 }
