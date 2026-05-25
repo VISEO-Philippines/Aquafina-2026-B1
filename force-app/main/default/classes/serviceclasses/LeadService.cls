@@ -1,0 +1,26 @@
+public with sharing class LeadService {
+    public static void convertHotLeads(List<Id> leadIds) {
+        Id currentUserId = UserInfo.getUserId();
+        // from List<Id> to List<Lead> 
+        List<Lead> leads = [SELECT Id, FirstName, LastName FROM Lead WHERE Id IN :leadIds];
+        List<Database.LeadConvert> listlc = new List<Database.LeadConvert>();
+        // List<Lead> to List<Database.LeadConvert>
+        for(Lead l : leads) {
+            Database.LeadConvert lc = new Database.LeadConvert();
+            lc.setLeadId(l.Id);
+            lc.setConvertedStatus('Qualified');
+            lc.setOwnerId(currentUserId);
+            lc.setOpportunityName('Hot Web Lead: ' + l.FirstName + " " + l.Lastname);
+
+            listlc.add(lc);
+        }
+
+        // List<Database.LeadConvert> to List<Database.LeadConvertResults>
+        List<Database.LeadConvertResult> lcrs = Database.convertLead(listlc, allOrNone=false);
+        for(Database.LeadConvertResult lcr : lcrs) {
+            if(!lcr.isSuccess()) {
+                System.debug('Failed to convert lead: ' + lcr.getErrors());
+            }
+        }
+    }
+}
