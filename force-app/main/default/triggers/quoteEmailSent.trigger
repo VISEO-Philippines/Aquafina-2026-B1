@@ -7,4 +7,7 @@ trigger quoteEmailSent on EmailMessage (before insert) {
         }
     }
 
+    
+    
+
 }

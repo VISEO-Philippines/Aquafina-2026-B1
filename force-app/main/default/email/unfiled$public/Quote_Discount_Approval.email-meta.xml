@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <description>Email to send to manager when effective deal discount exceeds 10%</description>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <name>Quote: Discount Approval</name>
+    <style>none</style>
+    <subject>Manager Discount Approval: {!Opportunity.OwnerLastName}</subject>
+    <type>text</type>
+    <uiType>Aloha</uiType>
+</EmailTemplate>

@@ -11,8 +11,8 @@ const URL_ALL_PRICING_BOOKS = '';
 //Field Instances  (Not String objects)
 //CUSTOMER / DEAL CONTEXT
 import ACCOUNT_ID_FIELD from "@salesforce/schema/Opportunity.AccountId";
-import ACCOUNT_NAME_FIELD from "@salesforce/schema/Opportunity.account.Name";
-import ACCOUNT_CUSTOMER_TYPE_FIELD from "@salesforce/schema/Opportunity.account.Customer_Type__c";
+import ACCOUNT_NAME_FIELD from "@salesforce/schema/Opportunity.Account.Name";
+import ACCOUNT_CUSTOMER_TYPE_FIELD from "@salesforce/schema/Opportunity.Account.Customer_Type__c";
 import OPPORTUNITY_TYPE_FIELD from "@salesforce/schema/Opportunity.Type";
 
 import OPPORTUNITY_NAME_FIELD from "@salesforce/schema/Opportunity.Name";
@@ -23,16 +23,16 @@ import OPPORTUNITY_EFFECTIVE_DEAL_DISCOUNT_FIELD from "@salesforce/schema/Opport
 
 // QUOTE
 import SYNCED_QUOTE_ID_FIELD from "@salesforce/schema/Opportunity.SyncedQuoteId";
-import SYNCED_QUOTE_NAME_FIELD from "@salesforce/schema/Opportunity.syncedquote.Name";
-import QUOTE_NUMBER_FIELD from "@salesforce/schema/Opportunity.syncedquote.QuoteNumber";
-import LINE_ITEM_COUNT_FIELD from "@salesforce/schema/Opportunity.syncedquote.LineItemCount";
-import EXPIRATION_DATE_FIELD from "@salesforce/schema/Opportunity.syncedquote.ExpirationDate";
-import IS_SYNCED_FIELD from "@salesforce/schema/Opportunity.syncedquote.IsSyncing";
-import QUOTE_STATUS_FIELD from "@salesforce/schema/Opportunity.syncedquote.Status";
+import SYNCED_QUOTE_NAME_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.Name";
+import QUOTE_NUMBER_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.QuoteNumber";
+import LINE_ITEM_COUNT_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.LineItemCount";
+import EXPIRATION_DATE_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.ExpirationDate";
+import IS_SYNCED_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.IsSyncing";
+import QUOTE_STATUS_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.Status";
 
 // PRICING
-import DISCOUNT_FIELD from "@salesforce/schema/Opportunity.syncedquote.Discount";
-import SUBTOTAL_FIELD from "@salesforce/schema/Opportunity.syncedquote.Subtotal";
+import DISCOUNT_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.Discount";
+import SUBTOTAL_FIELD from "@salesforce/schema/Opportunity.SyncedQuote.Subtotal";
 import AMOUNT_FIELD from "@salesforce/schema/Opportunity.Amount";
 import VAT_FIELD from "@salesforce/schema/Opportunity.VAT_Amount__c";
 

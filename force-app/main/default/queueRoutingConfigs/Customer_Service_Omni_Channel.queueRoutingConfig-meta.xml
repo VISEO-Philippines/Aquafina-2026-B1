@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QueueRoutingConfig xmlns="http://soap.sforce.com/2006/04/metadata">
+    <capacityPercentage>50.0</capacityPercentage>
+    <capacityType>INTERRUPTIBLE</capacityType>
+    <isAttributeBased>false</isAttributeBased>
+    <label>Customer Service Omni-Channel</label>
+    <pushTimeout>180</pushTimeout>
+    <queueOverflowAssignee>Customer_Service_Queue</queueOverflowAssignee>
+    <routingModel>LEAST_ACTIVE</routingModel>
+    <routingPriority>10</routingPriority>
+</QueueRoutingConfig>

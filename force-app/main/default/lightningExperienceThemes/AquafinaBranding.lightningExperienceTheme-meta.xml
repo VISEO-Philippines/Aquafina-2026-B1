@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningExperienceTheme xmlns="http://soap.sforce.com/2006/04/metadata">
+    <defaultBrandingSet>LEXTHEMINGAquafinaBranding</defaultBrandingSet>
+    <description>Theme and branding for aquafina</description>
+    <designSystemVersion>SLDS_v2</designSystemVersion>
+    <isDarkModeEnabled>true</isDarkModeEnabled>
+    <masterLabel>Aquafina Branding</masterLabel>
+    <shouldOverrideLoadingImage>false</shouldOverrideLoadingImage>
+</LightningExperienceTheme>

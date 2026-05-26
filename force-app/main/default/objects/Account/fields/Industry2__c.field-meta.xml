@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Industry2__c</fullName>
+    <description>second picklist as aligned with Aquafina&apos;s business needs</description>
+    <inlineHelpText>Associated account&apos;s industry</inlineHelpText>
+    <label>Industry</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Beverage Distribution</fullName>
+                <default>false</default>
+                <label>Beverage Distribution</label>
+            </value>
+            <value>
+                <fullName>Casual Dining</fullName>
+                <default>false</default>
+                <label>Casual Dining</label>
+            </value>
+            <value>
+                <fullName>Catering Services</fullName>
+                <default>false</default>
+                <label>Catering Services</label>
+            </value>
+            <value>
+                <fullName>Cloud / Ghost Kitchens</fullName>
+                <default>false</default>
+                <label>Cloud / Ghost Kitchens</label>
+            </value>
+            <value>
+                <fullName>Cold Chain &amp; Logistics</fullName>
+                <default>false</default>
+                <label>Cold Chain &amp; Logistics</label>
+            </value>
+            <value>
+                <fullName>Fine Dining</fullName>
+                <default>false</default>
+                <label>Fine Dining</label>
+            </value>
+            <value>
+                <fullName>FMCG Distribution</fullName>
+                <default>false</default>
+                <label>FMCG Distribution</label>
+            </value>
+            <value>
+                <fullName>Food &amp; Beverage Services</fullName>
+                <default>false</default>
+                <label>Food &amp; Beverage Services</label>
+            </value>
+            <value>
+                <fullName>Food Distribution</fullName>
+                <default>false</default>
+                <label>Food Distribution</label>
+            </value>
+            <value>
+                <fullName>Food Import &amp; Export</fullName>
+                <default>false</default>
+                <label>Food Import &amp; Export</label>
+            </value>
+            <value>
+                <fullName>Hospitality</fullName>
+                <default>false</default>
+                <label>Hospitality</label>
+            </value>
+            <value>
+                <fullName>Hospitality Supplies</fullName>
+                <default>false</default>
+                <label>Hospitality Supplies</label>
+            </value>
+            <value>
+                <fullName>Quick Service Restaurants (QSR)</fullName>
+                <default>false</default>
+                <label>Quick Service Restaurants (QSR)</label>
+            </value>
+            <value>
+                <fullName>Restaurants</fullName>
+                <default>false</default>
+                <label>Restaurants</label>
+            </value>
+            <value>
+                <fullName>Restaurant Supply</fullName>
+                <default>false</default>
+                <label>Restaurant Supply</label>
+            </value>
+            <value>
+                <fullName>Wholesale Trade</fullName>
+                <default>false</default>
+                <label>Wholesale Trade</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

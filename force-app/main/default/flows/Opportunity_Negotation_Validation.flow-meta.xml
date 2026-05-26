@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>66.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <customErrors>
+        <name>Custom_Error_Due_To_No_Email_Sent</name>
+        <label>Custom Error Due To No Email Sent</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <customErrorMessages>
+            <errorMessage>Please send an EMAIL before proceeding to NEGOTIATION</errorMessage>
+            <isFieldError>false</isFieldError>
+        </customErrorMessages>
+    </customErrors>
+    <decisions>
+        <name>Sent_Email</name>
+        <label>Sent Email?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>NO</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Email_Related_To_Quote</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Custom_Error_Due_To_No_Email_Sent</targetReference>
+            </connector>
+            <label>NO</label>
+        </rules>
+    </decisions>
+    <description>Shows error if user has not sent an email to client yet</description>
+    <environments>Default</environments>
+    <interviewLabel>Opportunity Negotation Validation {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Opportunity Negotation Validation</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Email_Related_To_Quote</name>
+        <label>Get Email Related To Quote</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Sent_Email</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>RelatedToId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.SyncedQuoteId</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>Subject</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>EmailMessage</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Email_Related_To_Quote</targetReference>
+        </connector>
+        <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>StageName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Negotiation</stringValue>
+            </value>
+        </filters>
+        <object>Opportunity</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>66.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <customErrors>
+        <description>Pricebook does not match with customer type</description>
+        <name>Wrong_Pricebook_Error</name>
+        <label>Wrong Pricebook Error</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <customErrorMessages>
+            <errorMessage>Pricebook does not match with customer type. Please delete quote and input correct pricebook</errorMessage>
+            <isFieldError>false</isFieldError>
+        </customErrorMessages>
+    </customErrors>
+    <decisions>
+        <description>Checks if user alloted the price book according to account type (distributor vs restaurateur). Outputs error on mismatch</description>
+        <name>Correct_Pricebook</name>
+        <label>Correct Pricebook?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>No</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.PricebookEntry.Pricebook2.Name</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue>
+                    <elementReference>$Record.Quote.Customer_Type__c</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Wrong_Pricebook_Error</targetReference>
+            </connector>
+            <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+            <label>No</label>
+        </rules>
+    </decisions>
+    <description>Shows error upon mismatch of Quote.Pricebook2.Name and Quote.Account.Customer_Type__c</description>
+    <environments>Default</environments>
+    <interviewLabel>Error Message For Mismatching Pricebook and Customer Type {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Error Message For Mismatching Pricebook and Customer Type</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Correct_Pricebook</targetReference>
+        </connector>
+        <object>QuoteLineItem</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

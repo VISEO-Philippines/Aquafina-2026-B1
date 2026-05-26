@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product__c</fullName>
+    <label>Product</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>AQUAFINA Single Bottle</fullName>
+                <default>false</default>
+                <label>AQUAFINA Single Bottle</label>
+            </value>
+            <value>
+                <fullName>AQUAFINA Pack Of 5 Bottles</fullName>
+                <default>false</default>
+                <label>AQUAFINA Pack Of 5 Bottles</label>
+            </value>
+            <value>
+                <fullName>AQUAFINA Pack of 10 Bottles</fullName>
+                <default>false</default>
+                <label>AQUAFINA Pack of 10 Bottles</label>
+            </value>
+            <value>
+                <fullName>AQUAFINA Pack Of 50 Bottles</fullName>
+                <default>false</default>
+                <label>AQUAFINA Pack Of 50 Bottles</label>
+            </value>
+            <value>
+                <fullName>AQUAFINA Pack Of 100 Bottles</fullName>
+                <default>false</default>
+                <label>AQUAFINA Pack Of 100 Bottles</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
