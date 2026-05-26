@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workflow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <alerts>
+        <fullName>Email_alert_rejection_update</fullName>
+        <ccEmails>tjcguela@gmail.com</ccEmails>
+        <ccEmails>timothy-james.guela@viseo.com</ccEmails>
+        <description>Email alert rejection update</description>
+        <protected>false</protected>
+        <recipients>
+            <recipient>Sales_Representative_East</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Representative_North</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Representative_South</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Representative_West</recipient>
+            <type>role</type>
+        </recipients>
+        <senderType>CurrentUser</senderType>
+        <template>unfiled$public/Quote_Discount_Rejected</template>
+    </alerts>
+    <alerts>
+        <fullName>Email_approval_update</fullName>
+        <ccEmails>timothy.c.guela@gmail.com</ccEmails>
+        <ccEmails>timothy-james.guela@viseo.com</ccEmails>
+        <description>Email approval update</description>
+        <protected>false</protected>
+        <recipients>
+            <type>accountOwner</type>
+        </recipients>
+        <senderType>CurrentUser</senderType>
+        <template>unfiled$public/Quote_Discount_Approved</template>
+    </alerts>
+    <alerts>
+        <fullName>Manager_Discount_Approval_Email_Update</fullName>
+        <ccEmails>timothy.c.guela@gmail.com</ccEmails>
+        <ccEmails>timothy-james.guela@viseo.com</ccEmails>
+        <description>Manager Discount Approval Email Update</description>
+        <protected>false</protected>
+        <recipients>
+            <recipient>CEO</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Director</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Operations_Director_France</recipient>
+            <type>role</type>
+        </recipients>
+        <recipients>
+            <recipient>Sales_Operations_Director_Spain</recipient>
+            <type>role</type>
+        </recipients>
+        <senderType>CurrentUser</senderType>
+        <template>unfiled$public/Quote_Discount_Approval</template>
+    </alerts>
+    <fieldUpdates>
+        <fullName>Automatic_Approval</fullName>
+        <field>Status</field>
+        <literalValue>Approved</literalValue>
+        <name>Automatic Approval</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Update_Quote_Status_To_Approved</fullName>
+        <field>Status</field>
+        <literalValue>Approved</literalValue>
+        <name>Update Quote Status To Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Update_Status_To_Approved</fullName>
+        <description>updates field to &apos;approved&apos; upon manager approval</description>
+        <field>Status</field>
+        <literalValue>Approved</literalValue>
+        <name>Update Status To Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Update_Status_To_In_Review</fullName>
+        <description>Update quote status to &apos;In Review&apos; upon submission</description>
+        <field>Status</field>
+        <literalValue>In Review</literalValue>
+        <name>Update Status To In Review</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Update_Status_To_Rejected</fullName>
+        <description>Update quote status to rejected</description>
+        <field>Status</field>
+        <literalValue>Rejected</literalValue>
+        <name>Update Status To Rejected</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+</Workflow>

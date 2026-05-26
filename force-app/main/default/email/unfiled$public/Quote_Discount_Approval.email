@@ -1,0 +1,13 @@
+Hello {!Quote.Owner_Manager__c},
+
+Please see the quote details below for your approval:
+
+Quote Name {!Quote.Name}
+Quote Number: {!Quote.QuoteNumber}
+
+Effective Deal Discount: {!Quote.Opportunity_Effective_Deal_Discount__c}
+Total Price: {!Quote.TotalPrice}
+Subtotal: {!Quote.Subtotal}
+
+Regards,
+{!Quote.OwnerFullName}

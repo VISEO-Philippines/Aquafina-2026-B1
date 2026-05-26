@@ -1,0 +1,11 @@
+Hi {!Quote.OwnerFullName},
+
+Congratulations! Your discount approval has been approved with the following details:
+
+Quote: {!Quote.Name}
+Quote Number: {!Quote.QuoteNumber}
+Effective Deal Discount: {!Quote.Opportunity_Effective_Deal_Discount__c} %
+Total (Before VAT): {!Quote.TotalPrice}
+
+Best,
+{!Quote.Owner_Manager__c}

@@ -1,0 +1,8 @@
+Dear {!Quote.OwnerFullName},
+
+Congratulations! Your quote has been approved with the following details:
+
+Quote Name: {!Quote.Name}
+Effective Deal Discount: {!Quote.Opportunity_Effective_Deal_Discount__c}
+Quote Number: {!Quote.QuoteNumber}
+Number of items: {!Quote.LineItemCount}

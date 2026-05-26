@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingOwnerRules>
+        <fullName>Access_to_Sales_Rep_East</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>None</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <label>Access to Sales Rep East</label>
+        <sharedTo>
+            <group>Upper_Management_Spain</group>
+        </sharedTo>
+        <sharedFrom>
+            <role>Sales_Representative_East</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+    <sharingOwnerRules>
+        <fullName>Access_to_Sales_Rep_South</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>None</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <label>Access to Sales Rep South</label>
+        <sharedTo>
+            <group>Upper_Management_France</group>
+        </sharedTo>
+        <sharedFrom>
+            <role>Sales_Representative_South</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+    <sharingOwnerRules>
+        <fullName>Access_to_Sales_Rep_West</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>None</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <label>Access to Sales Rep West</label>
+        <sharedTo>
+            <group>Upper_Management_Spain</group>
+        </sharedTo>
+        <sharedFrom>
+            <role>Sales_Representative_West</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+    <sharingOwnerRules>
+        <fullName>Sales_Representative_North_Private_Access</fullName>
+        <accessLevel>Read</accessLevel>
+        <accountSettings>
+            <caseAccessLevel>None</caseAccessLevel>
+            <contactAccessLevel>None</contactAccessLevel>
+            <opportunityAccessLevel>None</opportunityAccessLevel>
+        </accountSettings>
+        <label>Sales Representative North Private Access</label>
+        <sharedTo>
+            <group>Upper_Management_France</group>
+        </sharedTo>
+        <sharedFrom>
+            <role>Sales_Representative_North</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+</SharingRules>

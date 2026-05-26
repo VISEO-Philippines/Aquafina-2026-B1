@@ -1,0 +1,18 @@
+Dear Customer,
+
+Thank you for your interest in Aquafina. Please see the details below regarding your quote.
+
+Quote Number: {!Quote.QuoteNumber}
+Quote Date: {!Quote.CreatedDate}
+Valid Until: {!Quote.ExpirationDate}
+
+Total Price: {!Quote.TotalPrice}
+Subtotal: {!Quote.Subtotal}
+Effective Deal Discount: {!Quote.Opportunity_Effective_Deal_Discount__c} %
+
+If you have any questions, please don't hesititate to reach out to us
+
+Best,
+{!Quote.OwnerFullName},
+AQUAFINA Sales Representative
+{!Quote.OwnerEmail}
