@@ -1,0 +1,38 @@
+.error-color{
+    color: var(--slds-g-color-on-error-2, rgb(138,3,62));
+}
+
+.error-bg{
+    background-color: #FDB6C5;
+}
+
+.warning-color{
+    color: var(--slds-g-color-on-warning-1, rgb(140,75,2));
+}
+
+.warning-bg{
+    background-color: var(--slds-g-color-warning-container-1, rgb(249,227,182));
+}
+
+.success-color{
+    color: var(--slds-g-color-on-success-1, rgb(5,103,100));
+}
+
+.success-bg{
+    background-color: #ACF3E4;
+}
+
+
+.informational-color{
+    color: white;
+}
+
+.blue-bg{
+    background-color: #5867E8;
+}
+
+.flexbox{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
