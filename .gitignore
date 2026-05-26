@@ -46,3 +46,10 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+
+# Unused User Stories from old version of Aquafina Phase 2
+force-app/main/default/classes/US-0001
+force-app/main/default/triggers/US-0001
+
+# From Trigger Handler package
+force-app/main/default/classes/trigger_handler_packg
