@@ -67,16 +67,21 @@ public with sharing class TestDataFactory {
     // also this might be visible to non-test classes which it shouldnt be for now
     public class ProdSet{
         public Product2 prod;
+        public Product2 prod2;
         public PriceBookEntry stdpbe;
+        public PriceBookEntry stdpbe2;
         public PriceBookEntry pbe;
+        public PriceBookEntry pbe2;
         public PriceBook2 pb;
     }
     
     public static ProdSet generateProdSet() {
         ProdSet prodSet = new ProdSet();
         Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
-        insert prod;
+        Product2 prod2 = new Product2(Name = 'Test Water Bottle Two', IsActive = true);
+        insert new List<Product2>{prod, prod2};
         prodSet.prod = prod;
+        prodSet.prod2 = prod2;
         Id stdPbId = Test.getStandardPricebookId();
     
         PricebookEntry stdPbe = new PricebookEntry(
@@ -85,8 +90,15 @@ public with sharing class TestDataFactory {
             UnitPrice = 3, 
             IsActive = true
         );
-        insert stdPbe;
+        PricebookEntry stdPbe2 = new PricebookEntry(
+            Pricebook2Id = stdPbId, 
+            Product2Id = prod2.Id, 
+            UnitPrice = 6, 
+            IsActive = true
+        );
+        insert new List<PriceBookEntry>{stdPbe, stdPbe2};
 		prodSet.stdpbe = stdPbe;
+        prodSet.stdpbe2 = stdPbe2;
         
         Pricebook2 pb = new Pricebook2(
             Name = 'Special Discount PB',
@@ -97,10 +109,15 @@ public with sharing class TestDataFactory {
 
         PricebookEntry pbe = new PricebookEntry(
             Pricebook2Id = pb.Id, Product2Id = prod.Id, 
-            UnitPrice = 3, IsActive = true
+            UnitPrice = 4, IsActive = true
         );
-        insert pbe;
+        PricebookEntry pbe2 = new PricebookEntry(
+            Pricebook2Id = pb.Id, Product2Id = prod2.Id, 
+            UnitPrice = 8, IsActive = true
+        );
+        insert new List<PriceBookEntry>{pbe, pbe2};
         prodSet.pbe = pbe;
+        prodSet.pbe2 = pbe2;
         
 		return prodSet;
     }
