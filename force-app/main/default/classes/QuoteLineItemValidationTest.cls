@@ -1,9 +1,37 @@
 @isTest
 private class QuoteLineItemValidationTest {
 
+    // Opportunity A - 1 Quote - 2 QuoteLineItem (1 for each pbe)
+    // Opportunity B - 3 Quotes (Quote A has 2 QLI, Quote B has 1 QLI, Quote C has no QLI) >>>>> TESTING DONE HERE ON QUOTE B and C
+    // Opp A ensures logic does not mix between opportunities, Opp B Quote A ensures logic does not mix between quotes
+    // tests: 
+    // insert qlib on B to pass
+    // insert qlia on B to reject
+    // insert qlib, qlib on B to get rejected
+    // insert qlia, qlib on C to pass
+    // insert qlia, qlib on B to partial pass (qlib)
+    // insert qlia, qlia, qlib on C to partial pass (qlib)
+
     @TestSetup
     static void setupData(){
         // TODO: Move setup here
+        User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France');
+
+
+        System.runAs(sRepFrance1) {
+            TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
+
+            List<Opportunity> opps = TestDataFactory.generateOpportunity('TestOpp', 2); // TestOpp1, TestOpp2
+
+            // Opp A
+            List<Quote> quoteA = TestDataFactory.generateQuote('OppAQuote', opps[0].Id, prodSet.pb.Id, 1); // OppAQuote1
+            List<QuoteLineItem> quoteAItems = TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quoteA[0].Id, opps[0].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
+
+            // Opp B
+            List<Quote> quotesB = TestDataFactory.generateQuote('OppBQuote', opps[1].Id, prodSet.pb.Id, 3); // OppBQuote1
+            List<QuoteLineItem> quoteAItems = TestDataFactory.generateQuoteWithLineItems('OppBQuoteA', quotesB[0].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
+            List<QuoteLineItem> quoteBItems = TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quotesB[1].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe});
+        }
     }
 
     @isTest
@@ -48,5 +76,5 @@ private class QuoteLineItemValidationTest {
         }
     }
 
-    // TODO: Bad test path
+    // TODO: Bad test path. Oh wait the above is hybrid test path,
 }

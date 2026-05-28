@@ -1,14 +1,5 @@
 public with sharing class QuoteLineItemValidationService {
     public static void enforceProductNotRepeated(List<QuoteLineItem> qlis) {
-        // check duplicates within incoming batch by checking if (QuoteId, ProductId) pair is unique in within the batch
-        
-        // query existing quote line items and see if there are repeated pairs in the incoming batch
-        // String is QuoteId-ProductId pair, we store them here if we see the pair for the first time
-
-        // Use QuoteLineItemModel put the SOQL there
-        // I used QuoteModel before to host the function for querying QuoteLineItems
-
-        // will use this QuoteIds for querying quotelineitems
         Logger.info('QuoteLineItemValidation-enforceProductNotRepeated started');
 
         // Setting up for retrieval of Quotes from Database to to query QuoteLineItems AND Pricebook entries, we need to query the latter since Product2Id is not populated before insert
@@ -21,8 +12,8 @@ public with sharing class QuoteLineItemValidationService {
 
         // Setting up mappings from PriceBookEntryId to Product2Id since we need the Product2 as part of reqs
         Map<Id, Id> pbeToProduct2 = new Map<Id, Id>();
-        // TODO: Make a model for this, SOQL isn't allowed here
-        List<PriceBookEntry> pbes = [SELECT Id, Product2Id FROM PriceBookEntry WHERE Id IN :qliPbeIds];
+        // DONE: Make a model for this, SOQL isn't allowed here
+        List<PriceBookEntry> pbes = PriceBookModel.getPriceBookEntry(new List<Id>(qliPbeIds));
         for (PriceBookEntry pbe: pbes) {
             pbeToProduct2.put(pbe.Id, pbe.Product2Id);
         }
@@ -32,6 +23,10 @@ public with sharing class QuoteLineItemValidationService {
         Set<String> existingQuoteProductKeys = new Set<String>();
         Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
         for (QuoteLineItem qli : existingQLIs) {
+            if (qli.QuoteId == null || qli.Product2Id == null) {
+                Logger.warn('A QuoteLineItem with a null QuoteId or Product2Id exists in the database, this offending record has not been taken into account on enforcing no products are repeated.');
+                continue;
+            }
             existingQuoteProductKeys.add(qli.QuoteId + '-' + qli.Product2Id);
             Logger.info('existing qpkey: ' + qli.QuoteId + '-' + qli.Product2Id);
         }

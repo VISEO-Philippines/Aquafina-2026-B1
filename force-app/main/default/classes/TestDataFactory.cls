@@ -62,6 +62,55 @@ public with sharing class TestDataFactory {
 
         return testLead;
     }
+
+    public static List<Opportunity> generateOpportunity(String name, Integer count) {
+        List<Opportunity> opps = new List<Opportunity>();
+        for (Integer i = 1; i < count+1; i++) {
+            opps.add(
+                new Opportunity(
+                    Name = name + i,
+                    StageName = 'Prospecting',
+                    CloseDate = Date.today().addDays(1)
+                )
+            );
+        }
+
+        insert opps;
+        return opps;
+    }
+
+    public static List<Quote> generateQuote(String name, Id oppId, Id pricebook2Id, Integer count) {
+        List<Quote> quotes = new List<Quote>();
+        for (Integer i = 1; i < count+1; i++) {
+            quotes.add(
+                new Quote(
+                    Name = name + i,
+                    OpportunityId = oppId,
+                    Pricebook2Id = pricebook2Id
+                )
+            );
+        }
+        
+        insert quotes;
+        return quotes;
+    }
+
+    public static List<QuoteLineItem> generateQuoteWithLineItems(String name, Id quoteId, Id oppId, List<PriceBookEntry> pbes) {
+        List<QuoteLineItem> qlis = new List<QuoteLineItem>();
+        for (PriceBookEntry pbe : pbes) {
+            qlis.add(
+                new QuoteLineItem(
+                    QuoteId = quoteId,
+                    PriceBookEntryId = pbe.Id,
+                    Quantity = 10,
+                    UnitPrice = pbe.UnitPrice
+                )
+            );
+        }
+
+        insert qlis;
+        return qlis;
+    }
     
     // There might be some standards for making struct-like classes like these.
     // also this might be visible to non-test classes which it shouldnt be for now
