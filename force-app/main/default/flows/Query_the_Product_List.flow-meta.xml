@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Notify_Logistics_Team</name>
+        <label>Notify Logistics Team</label>
+        <locationX>427</locationX>
+        <locationY>1064</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>recipientAddresses</name>
+            <value>
+                <collectionElements>
+                    <stringValue>wilmargherix.castaneda.m@gmail.com</stringValue>
+                </collectionElements>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>composeEmailContent</name>
+            <value>
+                <stringValue>True</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <elementReference>DeliverySubject</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <inputConfiguratorMode>Custom</inputConfiguratorMode>
+                <stringValue>&lt;p&gt;{!tmplEmailBody}&lt;/p&gt;</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>relatedRecordId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+                <inputConfiguratorMode>Resource</inputConfiguratorMode>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+        <offset>0</offset>
+        <versionString>2.0.1</versionString>
+    </actionCalls>
+    <apiVersion>66.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <name>Append_Product_to_List</name>
+        <label>Append Product to List</label>
+        <locationX>706</locationX>
+        <locationY>609</locationY>
+        <assignmentItems>
+            <assignToReference>varProductList</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>ProductList</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_Over_Quote_Lines</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Initialize_Product_List</name>
+        <label>Initialize Product List</label>
+        <locationX>280</locationX>
+        <locationY>629</locationY>
+        <assignmentItems>
+            <assignToReference>varProductList</assignToReference>
+            <operator>Assign</operator>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_Over_Quote_Lines</targetReference>
+        </connector>
+    </assignments>
+    <environments>Default</environments>
+    <formulas>
+        <name>DeliverySubject</name>
+        <dataType>String</dataType>
+        <expression>&quot;Delivery Order – &quot; &amp; $Record.Name</expression>
+    </formulas>
+    <formulas>
+        <name>ProductList</name>
+        <dataType>String</dataType>
+        <expression>{!varProduct.Name} &amp; &quot; — Qty: &quot; &amp; TEXT({!Loop_Over_Quote_Lines.Quantity}) &amp; BR()</expression>
+    </formulas>
+    <interviewLabel>Query the Product List {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Query the Product List</label>
+    <loops>
+        <name>Loop_Over_Quote_Lines</name>
+        <label>Loop Over Quote Lines</label>
+        <locationX>429</locationX>
+        <locationY>671</locationY>
+        <collectionReference>colQuoteLines</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Get_Product_Name</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_Contact</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>FREE_FORM_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Contact</name>
+        <label>Get Contact</label>
+        <locationX>431</locationX>
+        <locationY>924</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Notify_Logistics_Team</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>AccountId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.AccountId</elementReference>
+            </value>
+        </filters>
+        <object>Contact</object>
+        <outputReference>varDeliveryContact</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>MailingAddress</queriedFields>
+        <queriedFields>FirstName</queriedFields>
+        <queriedFields>LastName</queriedFields>
+        <queriedFields>Phone</queriedFields>
+        <queriedFields>MailingStreet</queriedFields>
+        <queriedFields>MailingCity</queriedFields>
+        <queriedFields>MailingState</queriedFields>
+        <queriedFields>MailingPostalCode</queriedFields>
+        <queriedFields>MailingCountry</queriedFields>
+        <sortField>CreatedDate</sortField>
+        <sortOrder>Asc</sortOrder>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Primary_Quote</name>
+        <label>Get Primary Quote</label>
+        <locationX>395</locationX>
+        <locationY>353</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Quote_Line_Items</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>OpportunityId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>IsSyncing</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <object>Quote</object>
+        <outputReference>varPrimaryQuote</outputReference>
+        <queriedFields>Id</queriedFields>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Product_Name</name>
+        <label>Get Product Name</label>
+        <locationX>612</locationX>
+        <locationY>682</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Append_Product_to_List</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Loop_Over_Quote_Lines.Product2Id</elementReference>
+            </value>
+        </filters>
+        <object>Product2</object>
+        <outputReference>varProduct</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Name</queriedFields>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Quote_Line_Items</name>
+        <label>Get Quote Line Items</label>
+        <locationX>401</locationX>
+        <locationY>505</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Initialize_Product_List</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>QuoteId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>varPrimaryQuote.Id</elementReference>
+            </value>
+        </filters>
+        <object>QuoteLineItem</object>
+        <outputReference>colQuoteLines</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Product2Id</queriedFields>
+        <queriedFields>LineNumber</queriedFields>
+        <queriedFields>Quantity</queriedFields>
+        <queriedFields>PricebookEntryId</queriedFields>
+        <queriedFields>QuoteId</queriedFields>
+        <queriedFields>UnitPrice</queriedFields>
+    </recordLookups>
+    <start>
+        <locationX>281</locationX>
+        <locationY>48</locationY>
+        <connector>
+            <targetReference>Get_Primary_Quote</targetReference>
+        </connector>
+        <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Ready_for_Delivery__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <object>Opportunity</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <textTemplates>
+        <name>tmplEmailBody</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Hello Logistics Team,
+
+The following opportunity has been successfully closed as Won.
+Please proceed with the preparation and processing of the corresponding delivery order.
+
+Opportunity Details
+Opportunity Name: {!$Record.Name}
+Account: {!$Record.Account.Name}
+
+Delivery Contact
+Name: {!varDeliveryContact.FirstName} {!varDeliveryContact.LastName}
+Phone: {!varDeliveryContact.Phone}
+
+Delivery Address
+{!varDeliveryContact.MailingStreet}
+{!varDeliveryContact.MailingCity}, {!varDeliveryContact.MailingState} {!varDeliveryContact.MailingPostalCode}
+{!varDeliveryContact.MailingCountry}
+
+Products to Deliver
+{!varProductList}
+
+If you have any questions or require clarification, please coordinate internally with the appropriate sales representative.
+Thank you.</text>
+    </textTemplates>
+    <variables>
+        <name>colQuoteLines</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>QuoteLineItem</objectType>
+    </variables>
+    <variables>
+        <name>varDeliveryContact</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>Contact</objectType>
+    </variables>
+    <variables>
+        <name>varPrimaryQuote</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>Quote</objectType>
+    </variables>
+    <variables>
+        <name>varProduct</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>Product2</objectType>
+    </variables>
+    <variables>
+        <name>varProductList</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>
