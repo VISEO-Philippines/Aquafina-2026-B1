@@ -1,0 +1,126 @@
+<template>
+    <lightning-card title="Deal Summary" icon-name="standard:opportunity">
+        <!-- Loading state while Apex data is being fetched. -->
+        <template if:true={isLoading}>
+            <div class="card-state">
+                <lightning-spinner alternative-text="Loading deal summary"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Error state shown when the wire call returns an error. -->
+        <template if:true={hasError}>
+            <div class="card-state card-state_error slds-p-around_medium">
+                <lightning-icon icon-name="utility:error" variant="error" size="small" class="slds-m-right_small"></lightning-icon>
+                <div>
+                    <p class="state-title">Could not load the deal summary</p>
+                    <p class="state-body">Refresh the page or open another Opportunity to try again.</p>
+                </div>
+            </div>
+        </template>
+
+        <!-- Main content is only rendered when not loading and no error exists. -->
+        <template if:false={isLoading}>
+            <template if:false={hasError}>
+                <div class="card-body">
+                    <!-- Hero row: key quote identity + primary metric. -->
+                    <div class="hero">
+                        <div class="hero-content">
+                            <p class="eyebrow">Current quote</p>
+                            <div class="hero-title-row">
+                                <h3 class="hero-title slds-truncate" title={summary.quoteName}>{summary.quoteName}</h3>
+                                <span class={statusPillClass}>{quoteStatusLabel}</span>
+                            </div>
+                            <p class="hero-subtitle slds-truncate" title={summary.accountName}>{summary.accountName}</p>
+                        </div>
+                        <div class="hero-metric">
+                            <p class="metric-label">Effective discount</p>
+                            <p class="metric-value">{effectiveDiscountFormatted}</p>
+                        </div>
+                    </div>
+
+                    <!-- Deal and customer context block. -->
+                    <section class="panel">
+                        <h3 class="section-title">Customer & Deal Context</h3>
+                        <div class="detail-grid detail-grid_two">
+                            <div class="detail-item">
+                                <p class="detail-label">Account</p>
+                                <p class="detail-value">{summary.accountName}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Stage</p>
+                                <p class="detail-value">{summary.stageName}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Primary Contact</p>
+                                <p class="detail-value">{summary.primaryContactName}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Contact Email</p>
+                                <p class="detail-value">{summary.primaryContactEmail}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Financial values from the summary response. -->
+                    <section class="panel">
+                        <h3 class="section-title">Financial Overview</h3>
+                        <div class="detail-grid detail-grid_three">
+                            <div class="detail-item">
+                                <p class="detail-label">Quote</p>
+                                <p class="detail-value">{summary.quoteName}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Quote Status</p>
+                                <p class="detail-value">{quoteStatusLabel}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Effective Discount</p>
+                                <p class="detail-value">{effectiveDiscountFormatted}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">List Amount</p>
+                                <p class="detail-value">{summary.totalListAmount}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Net Amount</p>
+                                <p class="detail-value">{summary.netAmount}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">VAT (20%)</p>
+                                <p class="detail-value">{summary.vatAmount}</p>
+                            </div>
+                        </div>
+
+                        <div class="total-band">
+                            <p class="detail-label">Total Amount (Net + VAT)</p>
+                            <p class="total-value">{summary.totalAmount}</p>
+                        </div>
+                    </section>
+
+                    <!-- Computed readiness checks derived from summary booleans. -->
+                    <section class="panel">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="section-title">Deal Readiness Checks</h3>
+                                <p class="section-subtitle">{readinessSummary}</p>
+                            </div>
+                        </div>
+                        <ul class="checklist">
+                            <template for:each={readinessChecks} for:item="check">
+                                <li key={check.label} class={check.rowClass}>
+                                    <lightning-icon
+                                        icon-name={check.icon}
+                                        size="x-small"
+                                        variant={check.variant}
+                                        class="check-icon">
+                                    </lightning-icon>
+                                    <span class="check-label">{check.label}</span>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

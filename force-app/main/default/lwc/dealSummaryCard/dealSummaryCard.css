@@ -1,0 +1,242 @@
+/* Overall card layout and non-error state containers. */
+.card-body {
+    padding: 1rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.card-state {
+    min-height: 7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-state_error {
+    align-items: flex-start;
+    justify-content: flex-start;
+    background: #fff8f6;
+    border-top: 1px solid #f3d6d1;
+}
+
+.state-title {
+    font-weight: 600;
+    color: #3e3e3c;
+    margin-bottom: 0.125rem;
+}
+
+.state-body,
+.section-subtitle,
+.hero-subtitle {
+    color: #5c5c5c;
+}
+
+/* Hero area with quote identity and highlighted metric. */
+.hero {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 0.75rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+}
+
+.hero-content {
+    min-width: 0;
+}
+
+.eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #706e6b;
+    margin-bottom: 0.25rem;
+}
+
+.hero-title-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.hero-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #181818;
+    margin: 0;
+    max-width: 100%;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.4;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.status-pill_neutral {
+    color: #514f4d;
+    background: #f3f2f2;
+    border-color: #dddbda;
+}
+
+.status-pill_success {
+    color: #1b5e20;
+    background: #e8f5e9;
+    border-color: #c8e6c9;
+}
+
+.status-pill_warning {
+    color: #8a4b00;
+    background: #fff4d6;
+    border-color: #f5d67a;
+}
+
+.status-pill_info {
+    color: #045d6c;
+    background: #e4f5f7;
+    border-color: #b8e3ea;
+}
+
+.status-pill_error {
+    color: #a61b1b;
+    background: #fdecea;
+    border-color: #f3c0bb;
+}
+
+.hero-metric {
+    min-width: 8rem;
+    text-align: right;
+}
+
+.metric-label,
+.detail-label {
+    color: #706e6b;
+    font-size: 0.75rem;
+    margin-bottom: 0.125rem;
+}
+
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0b6b74;
+}
+
+/* Generic panel and section heading styles reused across content blocks. */
+.panel {
+    padding: 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 0.75rem;
+    background: #ffffff;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f1f1f;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive grids for detail rows in context and financial sections. */
+.detail-grid {
+    display: grid;
+    gap: 0.9rem 1rem;
+}
+
+.detail-grid_two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-grid_three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detail-item {
+    min-width: 0;
+}
+
+.detail-value {
+    color: #1f1f1f;
+    font-size: 0.95rem;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.total-band {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #ecebea;
+}
+
+.total-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0b6b74;
+}
+
+/* Readiness checklist row variants (success/warning/error). */
+.checklist {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.5rem;
+    background: #fafaf9;
+}
+
+.check-item_success {
+    background: #f2f8f4;
+}
+
+.check-item_warning {
+    background: #fff9e6;
+}
+
+.check-item_error {
+    background: #fff4f2;
+}
+
+.check-icon {
+    flex: 0 0 auto;
+}
+
+.check-label {
+    color: #2b2b2b;
+}
+
+/* Mobile adjustments for stacked hero and single-column details. */
+@media (max-width: 48rem) {
+    .hero {
+        flex-direction: column;
+    }
+
+    .hero-metric {
+        text-align: left;
+    }
+
+    .detail-grid_two,
+    .detail-grid_three {
+        grid-template-columns: 1fr;
+    }
+}
