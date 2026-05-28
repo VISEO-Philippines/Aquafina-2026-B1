@@ -20,8 +20,10 @@ public with sharing class QuoteLineItemValidationService {
 
         // Retrieval of QuoteLineItems from database using QuoteIds from Setup
         List<QuoteLineItem> existingQLIs = QuoteModel.getQuoteLineItems(new List<Id>(qliQuoteIds));
+        Logger.debug('QUOTE IDS WATCHED: ' + qliQuoteIds);
+        Logger.debug('EXISTING QLIs RETRIEVED: ' + existingQLIs);
         Set<String> existingQuoteProductKeys = new Set<String>();
-        Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
+        Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database. ');
         for (QuoteLineItem qli : existingQLIs) {
             if (qli.QuoteId == null || qli.Product2Id == null) {
                 Logger.warn('A QuoteLineItem with a null QuoteId or Product2Id exists in the database, this offending record has not been taken into account on enforcing no products are repeated.');
