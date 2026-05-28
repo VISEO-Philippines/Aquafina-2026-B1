@@ -17,7 +17,6 @@ private class QuoteLineItemValidationTest {
         // TODO: Move setup here
         User sRepFrance1 = TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France');
 
-
         System.runAs(sRepFrance1) {
             TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
 
@@ -25,12 +24,12 @@ private class QuoteLineItemValidationTest {
 
             // Opp A
             List<Quote> quoteA = TestDataFactory.generateQuote('OppAQuote', opps[0].Id, prodSet.pb.Id, 1); // OppAQuote1
-            List<QuoteLineItem> quoteAItems = TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quoteA[0].Id, opps[0].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
+            TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quoteA[0].Id, opps[0].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
 
             // Opp B
             List<Quote> quotesB = TestDataFactory.generateQuote('OppBQuote', opps[1].Id, prodSet.pb.Id, 3); // OppBQuote1
-            List<QuoteLineItem> quoteAItems = TestDataFactory.generateQuoteWithLineItems('OppBQuoteA', quotesB[0].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
-            List<QuoteLineItem> quoteBItems = TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quotesB[1].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe});
+            TestDataFactory.generateQuoteWithLineItems('OppBQuoteA', quotesB[0].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe, prodSet.pbe2});
+            TestDataFactory.generateQuoteWithLineItems('OppAQuoteA', quotesB[1].Id, opps[1].Id, new List<PriceBookEntry>{prodSet.pbe});
         }
     }
 
@@ -39,6 +38,8 @@ private class QuoteLineItemValidationTest {
 
         // TODO: Use System.runAs for these
         // TODO: Add creation of Opportunity, Quote to TestDataFactory
+
+        // NOTE: DONT GENERATE A NEW PRODSET HERE, JUST COPY FROM OPPA IN THE SETUP. 
         Opportunity testOpp = new Opportunity(
             Name = 'Test Freeze Opportunity',
             StageName = 'Prospecting',
