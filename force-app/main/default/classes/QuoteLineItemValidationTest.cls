@@ -34,7 +34,7 @@ private class QuoteLineItemValidationTest {
     }
 
     @isTest
-    static void testInsertOneAcceptedQLI() {
+    static void productNotRepeatedInsertOneAcceptedQLItest() {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
 
         System.runAs(sRepFrance1) {
@@ -77,12 +77,11 @@ private class QuoteLineItemValidationTest {
     }
 
     @isTest
-    static void testInsertOneRejectedQLI() {
+    static void productNotRepeatedInsertOneRejectedQLItest() {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
 
         System.runAs(sRepFrance1) {
             // Get OppA QuoteLineItems for copying
-            Logger.warn('-----------------------------------------------------------------------------------START TEST');
             Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
             List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
@@ -112,8 +111,6 @@ private class QuoteLineItemValidationTest {
             Test.stopTest();
 
             Assert.isFalse(results[0].isSuccess() && results[1].isSuccess(), 'An insert of a QLI with existing product in the database has succeeded but should have failed.');
-            Logger.warn('-----------------------------------------------------------------------------------END TEST');
-            
         }
     }
 
@@ -122,26 +119,6 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
 
         System.runAs(sRepFrance1) {
-            // TODO: Use System.runAs for these
-            // DONE: Add creation of Opportunity, Quote to TestDataFactory
-
-            // NOTE: DONT GENERATE A NEW PRODSET HERE, JUST COPY FROM OPPA IN THE SETUP. 
-            // Opportunity testOpp = new Opportunity(
-            //     Name = 'Test Freeze Opportunity',
-            //     StageName = 'Prospecting',
-            //     CloseDate = Date.today().addDays(30)
-            // );
-            // insert testOpp;
-
-            // TestDataFactory.ProdSet prodSet = TestDataFactory.generateProdSet();
-
-            // Quote testQuote = new Quote(
-            //     Name = 'Test Duplicate Quote',
-            //     OpportunityId = testOpp.Id,
-            //     Pricebook2Id = prodSet.pb.Id
-            // );
-            // insert testQuote;
-
             // Get OppA QuoteLineItems for copying
             Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
@@ -176,6 +153,50 @@ private class QuoteLineItemValidationTest {
                 Assert.areEqual(1, results[i].getErrors().size(), 'Row ' + i + ' should have exactly 1 error attached.');
                 String actualErrorMessage = results[i].getErrors()[0].getMessage();
             }
+        }
+    }
+
+    // TODO: SWITCH THIS TO UPDATE
+    @isTest
+    static void productNotRepeatedUpdateOneAcceptedQLI() {
+        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+
+        System.runAs(sRepFrance1) {
+            // Get OppA QuoteLineItems for copying
+            Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
+            Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
+            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
+            List<Id> pbeIds = new List<Id>();
+            for (QuoteLineItem qli_i : qlistemp) {
+                pbeIds.add(qli_i.PricebookEntryId);
+            }
+            
+            // Get OppB
+            Opportunity oppB = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp2'];
+
+            // Get Quote where to test
+            Quote qt = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppBQuote2'];
+
+            // What pbeid is in B (quote where to test)? can't reference this specifically without querying
+            QuoteLineItem bqli = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt.Id];
+            Id existingPbeId = bqli.PriceBookEntryId;
+
+            // Attempt to add in batch - misnomer, we actually add only 1 in this test
+            List<QuoteLineItem> batchOfQLIs = new List<QuoteLineItem>();
+
+
+            if (pbeIds[0] != existingPbeId) {
+                batchOfQLIs.add(new QuoteLineItem(QuoteId = qt.Id, PricebookEntryId = pbeIds[0], Quantity = 10, UnitPrice = 4));
+            } else {
+                batchOfQLIs.add(new QuoteLineItem(QuoteId = qt.Id, PricebookEntryId = pbeIds[1], Quantity = 10, UnitPrice = 4));
+            }
+
+            Test.startTest();
+            Database.SaveResult[] results = Database.insert(batchOfQLIs, false);
+            Test.stopTest();
+
+            Assert.isTrue(results[0].isSuccess(), 'Insert of QLI with unique product should succeed.');
+            
         }
     }
 }
