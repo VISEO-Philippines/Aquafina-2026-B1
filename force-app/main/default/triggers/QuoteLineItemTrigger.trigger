@@ -1,3 +1,3 @@
-trigger QuoteLineItemTrigger on SOBJECT (before insert, before update) {
+trigger QuoteLineItemTrigger on QuoteLineItem (before insert, before update) {
     QuoteLineItemTriggerHandler.run();
 }
