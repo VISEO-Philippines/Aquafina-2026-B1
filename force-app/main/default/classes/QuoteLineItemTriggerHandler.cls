@@ -1,10 +1,10 @@
-public with sharing class QuoteLineItemTriggerHandler extends TriggerHandler {
+public class QuoteLineItemTriggerHandler extends TriggerHandler {
     
-    beforeInsert(){
+    public override void beforeInsert(){
         QuoteLineItemValidatorService.validateNewProducts();
     }
 
-    beforeUpdate(){
+    public override void beforeUpdate(){
         QuoteLineItemValidatorService.validateNewProducts();
     }
 }
