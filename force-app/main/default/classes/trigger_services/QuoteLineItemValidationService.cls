@@ -25,14 +25,20 @@ public with sharing class QuoteLineItemValidationService {
         Logger.debug('QUOTE IDS WATCHED: ' + qliQuoteIds);
         Logger.debug('EXISTING QLIs RETRIEVED: ' + existingQLIs);
 
-        // Get all the IDs of the incoming QLIs, incoming records will have null, while 
-        Set<Id> triggeredQLIIds = new Map<Id, QuoteLineItem>(qlis).keySet();
+        // Get all the IDs of the incoming QLIs, incoming insert records will have null, while existing records have populated ids that are updates
+        // if it is an update then we will ignore that in comparison since that data is already rendered stale by the incoming insert.
+        Set<Id> triggeredQLIIds = new Set<Id>();
+        for (QuoteLineItem qli: qlis) {
+            if (qli.Id != null)
+                triggeredQLIIds.add(qli.Id);
+        }
 
         for (QuoteLineItem qli : existingQLIs) {
             if (qli.QuoteId == null || qli.Product2Id == null) {
                 Logger.warn('A QuoteLineItem with a null QuoteId or Product2Id exists in the database, this offending record has not been taken into account on enforcing no products are repeated.');
                 continue;
             } else if (triggeredQLIIds.contains(qli.Id)) {
+                Logger.warn('EXEMPTED A QLI SINCE IT IS AN UPDATE: ' + qli.Id + ' ' + qli.QuoteId + '-' + qli.Product2Id);
                 continue;
             } else {
                 existingQuoteProductKeys.add(qli.QuoteId + '-' + qli.Product2Id);

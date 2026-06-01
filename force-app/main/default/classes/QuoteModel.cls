@@ -39,7 +39,7 @@ public with sharing class QuoteModel {
         return [
             SELECT Id, Product2.Name, Product2Id, PriceBookEntryId, Quantity, Subtotal, Discount, TotalPrice, QuoteId
             FROM QuoteLineItem
-            WHERE Id IN :quoteIds
+            WHERE QuoteId IN :quoteIds
         ];
     }
 }
