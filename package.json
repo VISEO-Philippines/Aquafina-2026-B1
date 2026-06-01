@@ -38,7 +38,10 @@
       "eslint"
     ],
     "**/lwc/**": [
-        "sfdx-lwc-jest -- --bail --findRelatedTests --passWithNoTests"
+      "sfdx-lwc-jest -- --bail --findRelatedTests --passWithNoTests"
     ]
+  },
+  "dependencies": {
+    "sfdc-trigger-framework": "^1.3.0"
   }
 }
