@@ -155,9 +155,9 @@ private class QuoteLineItemValidationTest {
         }
     }
 
-    // TODO: SWITCH THIS TO UPDATE
+    // TODO: SWITCH THIS TO UPDATE, try inserting
     @isTest
-    static void productNotRepeatedUpdateOneAcceptedQLI() {
+    static void productNotRepeatedUpdateAndInsertAcceptedQLI() {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
 
         System.runAs(sRepFrance1) {
@@ -177,25 +177,27 @@ private class QuoteLineItemValidationTest {
             Quote qt = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppBQuote2'];
 
             // What pbeid is in B (quote where to test)? can't reference this specifically without querying
-            QuoteLineItem bqli = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt.Id];
+            QuoteLineItem bqli = [SELECT Id, PriceBookEntryId, Quantity FROM QuoteLineItem WHERE QuoteId = :qt.Id];
             Id existingPbeId = bqli.PriceBookEntryId;
 
             // Attempt to add in batch - misnomer, we actually add only 1 in this test
             List<QuoteLineItem> batchOfQLIs = new List<QuoteLineItem>();
 
-
-            if (pbeIds[0] != existingPbeId) {
-                batchOfQLIs.add(new QuoteLineItem(QuoteId = qt.Id, PricebookEntryId = pbeIds[0], Quantity = 10, UnitPrice = 4));
-            } else {
+            bqli.Quantity = bqli.Quantity+3;
+            
+            if (pbeIds[0] == existingPbeId) {
                 batchOfQLIs.add(new QuoteLineItem(QuoteId = qt.Id, PricebookEntryId = pbeIds[1], Quantity = 10, UnitPrice = 4));
+            } else {
+                batchOfQLIs.add(new QuoteLineItem(QuoteId = qt.Id, PricebookEntryId = pbeIds[0], Quantity = 10, UnitPrice = 4));
             }
+            batchOfQLIs.add(bqli);
 
             Test.startTest();
-            Database.SaveResult[] results = Database.insert(batchOfQLIs, false);
+            Database.UpsertResult[] results = Database.upsert(batchOfQLIs, false);
             Test.stopTest();
 
-            Assert.isTrue(results[0].isSuccess(), 'Insert of QLI with unique product should succeed.');
-            
+            Assert.isTrue(results[0].isSuccess() && results[1].isSuccess(), 'Updated one QuoteLineItem to another Product, Inserted another QuoteLineItem to old Product, both must be accepted.');
+
         }
     }
 }

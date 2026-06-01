@@ -91,6 +91,7 @@ public with sharing class QuoteLineItemValidationService {
 
         Map<Id, Id> pbeToProduct2 = getPbeToProduct2Mapping(qliPbeIds);
         Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis);
+        validateDuplicateProducts(qlis, pbeToProduct2, existingQuoteProductKeys);
         Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
 
         Logger.saveLog();

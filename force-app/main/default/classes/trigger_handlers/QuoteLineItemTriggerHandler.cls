@@ -14,10 +14,6 @@ public with sharing class QuoteLineItemTriggerHandler extends TriggerHandler {
                 qli.addError('QuoteLineItem must be associated to a Quote.');
                 continue;
             }
-            if (qli.PriceBookEntryId == null) {
-                qli.addError('QuoteLineItem must have a PriceBookEntry.');
-                continue;
-            }
             t_new.add(qli);
         }
         // call QuoteLineItemValidationService
