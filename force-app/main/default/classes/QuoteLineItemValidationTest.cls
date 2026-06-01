@@ -99,7 +99,6 @@ private class QuoteLineItemValidationTest {
 
             Assert.areEqual(1, dbqlis.size(), 'OppBQuoteB not initialized properly.');
 
-
             // Attempt to add in batch
             List<QuoteLineItem> batchOfQLIs = new List<QuoteLineItem>();
 
@@ -115,7 +114,7 @@ private class QuoteLineItemValidationTest {
     }
 
     @isTest
-    static void testInsertMultipleQLIEmptyDatabase() {
+    static void productNotRepeatedInsertMultipleQLItest() {
         User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
 
         System.runAs(sRepFrance1) {

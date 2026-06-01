@@ -3,10 +3,11 @@ public with sharing class PriceBookModel {
     //}
 
     public static List<PriceBookEntry> getPriceBookEntry(List<Id> recordIds) {
-        try {
+        if (recordIds.size() < 1) {
+            Logger.error('Attempted to retrieve PriceBookEntry with empty recordId argument.');
+            return new List<PriceBookEntry>();
+        } else {
             return [SELECT Id, Product2Id FROM PriceBookEntry WHERE Id IN :recordIds];
-        } catch (Exception e) {
-            throw new AuraHandledException(e.getMessage());
         }
     }
 }
