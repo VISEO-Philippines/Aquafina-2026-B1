@@ -1,34 +1,90 @@
 public inherited sharing class QuoteLineItemValidationService {
 
+    private static final String ERROR_EXISTING =
+        'Duplicate product already exists on this Quote.';
+
+    private static final String ERROR_IN_MEMORY =
+        'Duplicate product detected on this Quote.';
+
     public static void validateDuplicateProducts(List<QuoteLineItem> newQLIs) {
 
-        /*
-         * Collect QuoteIds from incoming QLIs
-         * Used for bulk SOQL query (avoid querying per record)
-         */
+        if (newQLIs == null || newQLIs.isEmpty()) {
+            return;
+        }
+
+        Set<Id> quoteIds = collectQuoteIds(newQLIs);
+        Set<Id> incomingQLIIds = collectQuoteLineItemIds(newQLIs);
+
+        List<QuoteLineItem> existingQLIs =
+            QuoteLineItemSelector.getByQuoteIds(quoteIds);
+
+        Map<Id, Set<Id>> existingProductsByQuoteId =
+            buildExistingProductsByQuoteId(
+                existingQLIs,
+                incomingQLIIds
+            );
+
+        addErrorsForProductsAlreadyOnQuote(
+            newQLIs,
+            existingProductsByQuoteId
+        );
+
+        Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct =
+            groupQuoteLineItemsByQuoteAndProduct(newQLIs);
+
+        addErrorsForDuplicateProductsInTransaction(
+            qlisByQuoteAndProduct
+        );
+    }
+
+    private static Set<Id> collectQuoteIds(
+        List<QuoteLineItem> quoteLineItems
+    ) {
         Set<Id> quoteIds = new Set<Id>();
 
-        for (QuoteLineItem qli : newQLIs) {
+        for (QuoteLineItem qli : quoteLineItems) {
             if (qli.QuoteId != null) {
                 quoteIds.add(qli.QuoteId);
             }
         }
 
-        /*
-         * Query existing QLIs for those Quotes
-         * Fetch existing product relationships per Quote
-         */
-        List<QuoteLineItem> existingQLIs =
-            QuoteLineItemSelector.getByQuoteIds(quoteIds);
+        return quoteIds;
+    }
 
-        /*
-         * Build lookup map (QuoteId → Set of ProductIds)
-         * lookup to detect existing duplicates
-         */
+    private static Set<Id> collectQuoteLineItemIds(
+        List<QuoteLineItem> quoteLineItems
+    ) {
+        Set<Id> quoteLineItemIds = new Set<Id>();
+
+        for (QuoteLineItem qli : quoteLineItems) {
+            if (qli.Id != null) {
+                quoteLineItemIds.add(qli.Id);
+            }
+        }
+
+        return quoteLineItemIds;
+    }
+
+    private static Map<Id, Set<Id>> buildExistingProductsByQuoteId(
+        List<QuoteLineItem> existingQLIs,
+        Set<Id> incomingQLIIds
+    ) {
         Map<Id, Set<Id>> existingProductsByQuoteId =
             new Map<Id, Set<Id>>();
 
         for (QuoteLineItem existingQLI : existingQLIs) {
+
+            /*
+             * In before update, the query can return the same QLI being updated.
+             * Skip incoming records so a QLI is not treated as a duplicate of itself.
+             */
+            if (incomingQLIIds.contains(existingQLI.Id)) {
+                continue;
+            }
+
+            if (existingQLI.QuoteId == null || existingQLI.Product2Id == null) {
+                continue;
+            }
 
             if (!existingProductsByQuoteId.containsKey(existingQLI.QuoteId)) {
                 existingProductsByQuoteId.put(
@@ -42,35 +98,46 @@ public inherited sharing class QuoteLineItemValidationService {
                 .add(existingQLI.Product2Id);
         }
 
-        /*
-         * Validate against existing database records
-         * Product cannot already exist on the Quote
-         */
+        return existingProductsByQuoteId;
+    }
+
+    private static void addErrorsForProductsAlreadyOnQuote(
+        List<QuoteLineItem> newQLIs,
+        Map<Id, Set<Id>> existingProductsByQuoteId
+    ) {
         for (QuoteLineItem qli : newQLIs) {
+
+            if (qli.QuoteId == null || qli.Product2Id == null) {
+                continue;
+            }
 
             Set<Id> existingProducts =
                 existingProductsByQuoteId.get(qli.QuoteId);
 
-            if (existingProducts != null &&
-                existingProducts.contains(qli.Product2Id)) {
+            Boolean productAlreadyExistsOnQuote =
+                existingProducts != null &&
+                existingProducts.contains(qli.Product2Id);
 
-                qli.addError(
-                    'Duplicate product already exists on this Quote.'
-                );
+            if (productAlreadyExistsOnQuote) {
+                qli.addError(ERROR_EXISTING);
             }
         }
+    }
 
-        /*
-         * Build in-memory grouping for Trigger.new
-         * Detect duplicates within same transaction
-         * Structure: QuoteId → ProductId → List of QLIs
-         */
+    private static Map<Id, Map<Id, List<QuoteLineItem>>>
+        groupQuoteLineItemsByQuoteAndProduct(
+            List<QuoteLineItem> quoteLineItems
+        ) {
+
         Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct =
             new Map<Id, Map<Id, List<QuoteLineItem>>>();
 
-        for (QuoteLineItem qli : newQLIs) {
+        for (QuoteLineItem qli : quoteLineItems) {
 
-            // Initialize Quote-level map if missing
+            if (qli.QuoteId == null || qli.Product2Id == null) {
+                continue;
+            }
+
             if (!qlisByQuoteAndProduct.containsKey(qli.QuoteId)) {
                 qlisByQuoteAndProduct.put(
                     qli.QuoteId,
@@ -78,44 +145,40 @@ public inherited sharing class QuoteLineItemValidationService {
                 );
             }
 
-            Map<Id, List<QuoteLineItem>> productsByQuote =
+            Map<Id, List<QuoteLineItem>> qlisByProduct =
                 qlisByQuoteAndProduct.get(qli.QuoteId);
 
-            // Initialize Product bucket if missing
-            if (!productsByQuote.containsKey(qli.Product2Id)) {
-                productsByQuote.put(
+            if (!qlisByProduct.containsKey(qli.Product2Id)) {
+                qlisByProduct.put(
                     qli.Product2Id,
                     new List<QuoteLineItem>()
                 );
             }
 
-            // Add QLI into its product group
-            productsByQuote
+            qlisByProduct
                 .get(qli.Product2Id)
                 .add(qli);
         }
 
-        /*
-         * Validate in-memory duplicates (Trigger.new vs Trigger.new)
-         * Same Product cannot appear multiple times in same Quote
-         */
-        for (Map<Id, List<QuoteLineItem>> productsByQuote :
-                qlisByQuoteAndProduct.values()) {
+        return qlisByQuoteAndProduct;
+    }
 
-            for (List<QuoteLineItem> qliGroup :
-                    productsByQuote.values()) {
+    private static void addErrorsForDuplicateProductsInTransaction(
+        Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct
+    ) {
+        for (Map<Id, List<QuoteLineItem>> qlisByProduct :
+            qlisByQuoteAndProduct.values()
+        ) {
+            for (List<QuoteLineItem> qliGroup : qlisByProduct.values()) {
 
-                if (qliGroup.size() > 1) {
+                if (qliGroup.size() <= 1) {
+                    continue;
+                }
 
-                    // Block ALL duplicate records in the group
-                    for (QuoteLineItem qli : qliGroup) {
-                        qli.addError(
-                            'Duplicate product detected on this Quote.'
-                        );
-                    }
+                for (QuoteLineItem qli : qliGroup) {
+                    qli.addError(ERROR_IN_MEMORY);
                 }
             }
         }
     }
 }
- 

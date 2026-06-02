@@ -1,6 +1,4 @@
 trigger QuoteLineItemTrigger on QuoteLineItem (before insert, before update) {
 
-    QuoteLineItemTriggerHandler handler = new QuoteLineItemTriggerHandler();
-
-   handler.run();
+    QuoteLineItemTriggerHandler handler = new QuoteLineItemTriggerHandler().run();
 }
