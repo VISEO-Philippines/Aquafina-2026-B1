@@ -10,7 +10,7 @@ public with sharing class PriceBookEntrySelector {
      * @param ids Set of PriceBookEntry IDs to query
      * @return List of PriceBookEntry records with related Product information
      */
-    public List<PriceBookEntry> getPriceBookEntriesByIds(Set<Id> ids) {
+    public List<PriceBookEntry> getPricebookEntriesByIds(Set<Id> ids) {
         return [
             SELECT Id, Product2Id, UnitPrice, Pricebook2Id
             FROM PriceBookEntry
@@ -26,9 +26,9 @@ public with sharing class PriceBookEntrySelector {
      * @param pbeIds Set of PriceBookEntry IDs
      * @return Map of Product2Id to PriceBookEntry
      */
-    public Map<Id, Id> getProductIdMap(Set<Id> pbeIds) {
+    public Map<Id, Id> getProduct2IdMap(Set<Id> pbeIds) {
         Map<Id, Id> productMap = new Map<Id, Id>();
-        List<PriceBookEntry> entries = getPriceBookEntriesByIds(pbeIds);
+        List<PriceBookEntry> entries = getPricebookEntriesByIds(pbeIds);
         
         for (PriceBookEntry entry : entries) {
             productMap.put(entry.Id, entry.Product2Id);

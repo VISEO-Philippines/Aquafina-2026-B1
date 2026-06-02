@@ -31,7 +31,7 @@ public with sharing class QuoteLineItemTriggerHandler extends TriggerHandler
      */
     public override void beforeInsert() 
     {
-        validateDuplicateProducts(Trigger.new);
+        this.duplicateProductService.checkDuplicateProducts(Trigger.new);
     }
 
     /**
@@ -40,39 +40,18 @@ public with sharing class QuoteLineItemTriggerHandler extends TriggerHandler
      */
     public override void beforeUpdate() 
     {
-        validateDuplicateProducts(Trigger.new);
-    }
+        List<QuoteLineItem> updatedLines = new List<QuoteLineItem>();
 
-    /**
-     * Validates quote line items for duplicate products.
-     * Retrieves existing quote line items and checks for duplicates.
-     * 
-     * @param newLines List of new or updated QuoteLineItem records
-     * @throws DuplicateProductException if duplicate products are detected
-     */
-
-    private void validateDuplicateProducts(List<QuoteLineItem> newLines) 
-    {
-        if (newLines == null || newLines.isEmpty()) 
+        // Only re-check records whose product changed during the update.
+        for (QuoteLineItem newLine : Trigger.new)
         {
-            return;
+            QuoteLineItem oldLine = Trigger.oldMap.get(newLine.Id);
+            if (oldLine == null || oldLine.Product2Id != newLine.Product2Id)
+            {
+                updatedLines.add(newLine);
+            }
         }
 
-        // Collect all quote IDs from new lines
-        Set<Id> quoteIds = new Set<Id>();
-        for (QuoteLineItem line : newLines) 
-        {
-            quoteIds.add(line.QuoteId);
-        }
-
-        // Get existing quote line items
-        List<QuoteLineItem> existingLines = this.duplicateProductService.getExistingProductsByQuote(quoteIds);
-
-        // Group existing products by quote ID
-        QuoteLineItemSelector selector = new QuoteLineItemSelector();
-        Map<Id, Set<Id>> existingProductMap = selector.groupByQuoteAndProduct(existingLines);
-
-        // Validate new lines against existing products
-        this.duplicateProductService.validate(newLines, existingProductMap);
+        this.duplicateProductService.checkDuplicateProducts(updatedLines);
     }
 }

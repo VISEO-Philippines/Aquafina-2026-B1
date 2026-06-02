@@ -1,12 +1,11 @@
 /**
  * Service for validating and detecting duplicate products in Quote Line Items.
  * Prevents adding the same product multiple times to a quote.
- * Uses PriceBookEntrySelector and QuoteLineItemSelector for data access.
+ * Uses QuoteLineItemSelector for data access.
  */
 public with sharing class DuplicateProductService 
 {
 
-    private PriceBookEntrySelector pbeSelector;
     private QuoteLineItemSelector qliSelector;
 
     /**
@@ -15,20 +14,17 @@ public with sharing class DuplicateProductService
 
     public DuplicateProductService() 
     {
-        this.pbeSelector = new PriceBookEntrySelector();
         this.qliSelector = new QuoteLineItemSelector();
     }
 
     /**
      * Constructor allowing dependency injection for testing.
      * 
-     * @param pbeSelector PriceBookEntrySelector instance
      * @param qliSelector QuoteLineItemSelector instance
      */
 
-    public DuplicateProductService(PriceBookEntrySelector pbeSelector, QuoteLineItemSelector qliSelector) 
+    public DuplicateProductService(QuoteLineItemSelector qliSelector) 
     {
-        this.pbeSelector = pbeSelector;
         this.qliSelector = qliSelector;
     }
 
@@ -61,38 +57,39 @@ public with sharing class DuplicateProductService
     }
 
     /**
+     * Validates quote line items for duplicate products by loading the existing
+     * quote line items and comparing them with the incoming records.
+     *
+     * @param newLines List of new or updated QuoteLineItem records
+     * @throws DuplicateProductException if a duplicate product is detected
+     */
+    public void checkDuplicateProducts(List<QuoteLineItem> newLines)
+    {
+        if (newLines == null || newLines.isEmpty())
+        {
+            return;
+        }
+
+        Set<Id> quoteIds = new Set<Id>();
+        for (QuoteLineItem line : newLines)
+        {
+            quoteIds.add(line.QuoteId);
+        }
+
+        Map<Id, Set<Id>> existingProductMap = this.getExistingProductsByQuote(quoteIds);
+
+        this.validate(newLines, existingProductMap);
+    }
+
+    /**
      * Gets existing QuoteLineItem records for the given Quote IDs.
      * 
      * @param quoteIds Set of Quote IDs to retrieve line items for
-     * @return List of existing QuoteLineItem records
+     * @return Map of Quote IDs to Product ID sets
      */
-    public List<QuoteLineItem> getExistingProductsByQuote(Set<Id> quoteIds) 
+    public Map<Id, Set<Id>> getExistingProductsByQuote(Set<Id> quoteIds) 
     {
-        return this.qliSelector.getExistingLinesByQuoteIds(quoteIds);
-    }
-
-    /**
-     * Gets PriceBook entries by their IDs.
-     * 
-     * @param pbeIds Set of PriceBookEntry IDs
-     * @return List of PriceBookEntry records
-     */
-    
-    public List<PriceBookEntry> getPriceBookEntries(Set<Id> pbeIds) 
-    {
-        return this.pbeSelector.getPriceBookEntriesByIds(pbeIds);
-    }
-
-    /**
-     * Checks for duplicate products across a list of line items and a product map.
-     * 
-     * @param lines List of QuoteLineItem records to check
-     * @param p2Map Map of Product IDs to their details
-     * @return Map with composite key format to identify duplicates
-     */
-
-    public Map<Id, Set<Id>> checkDuplicateProducts(List<QuoteLineItem> lines, Map<Id, Set<Id>> p2Map) 
-    {
-        return this.qliSelector.groupByQuoteAndProduct(lines);
+        List<QuoteLineItem> existingLines = this.qliSelector.getExistingLinesByQuoteIds(quoteIds);
+        return this.qliSelector.groupByQuoteAndProduct(existingLines);
     }
 }
