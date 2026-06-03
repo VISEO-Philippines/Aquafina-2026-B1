@@ -21,7 +21,8 @@ public with sharing class DealSummaryController {
                    Total_List_Amount__c, Total_Discounted_Amount__c,
                    Effective_Deal_Discount__c, Net_Amount__c,
                    VAT_Amount__c, Total_Amount__c,
-                   (SELECT Id, Name, Status, TotalPrice, Discount
+                   (SELECT Id, Name, Status, TotalPrice, Discount,
+                           (SELECT Id FROM QuoteLineItems LIMIT 1)
                     FROM Quotes
                     WHERE IsSyncing = true
                     LIMIT 1),
@@ -58,12 +59,7 @@ public with sharing class DealSummaryController {
             wrapper.quoteStatus = q.Status;
             wrapper.hasQuote = true;
             wrapper.quoteAccepted = (q.Status == 'Approved');
-
-            // Verify that the quote contains at least one product line item.
-            List<QuoteLineItem> lines = [
-                SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id LIMIT 1
-            ];
-            wrapper.quoteHasProducts = !lines.isEmpty();
+            wrapper.quoteHasProducts = q.QuoteLineItems != null && !q.QuoteLineItems.isEmpty();
         }
 
         // ========== CONTACT VALIDATION ===========
@@ -89,7 +85,7 @@ public with sharing class DealSummaryController {
         @AuraEnabled public String accountName;
         @AuraEnabled public String stageName;
         // ---- Quote Details ----
-        @AuraEnabled public String quoteId;
+        @AuraEnabled public Id quoteId;
         @AuraEnabled public String quoteName;
         @AuraEnabled public String quoteStatus;
         // ---- Financial Values ----
