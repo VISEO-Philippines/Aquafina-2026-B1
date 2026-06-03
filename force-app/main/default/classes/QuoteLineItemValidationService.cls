@@ -1,10 +1,10 @@
 public inherited sharing class QuoteLineItemValidationService {
 
     private static final String ERROR_EXISTING =
-        'Duplicate product already exists on this Quote.';
+        'Product "{0}" already exists on this Quote.';
 
     private static final String ERROR_IN_MEMORY =
-        'Duplicate product detected on this Quote.';
+        'Product "{0}" is added more than once on this Quote.';
 
     public static void validateDuplicateProducts(List<QuoteLineItem> newQLIs) {
 
@@ -14,26 +14,34 @@ public inherited sharing class QuoteLineItemValidationService {
 
         Set<Id> quoteIds = collectQuoteIds(newQLIs);
         Set<Id> incomingQLIIds = collectQuoteLineItemIds(newQLIs);
+        Set<Id> productIds = collectProductIds(newQLIs);
 
         List<QuoteLineItem> existingQLIs =
             QuoteLineItemSelector.getByQuoteIds(quoteIds);
 
-        Map<Id, Set<Id>> existingProductsByQuoteId =
-            buildExistingProductsByQuoteId(
+        List<Product2> products =
+            QuoteLineItemSelector.getProductsByIds(productIds);
+
+        Map<Id, Map<Id, String>> existingProductNamesByQuoteId =
+            buildExistingProductNamesByQuoteId(
                 existingQLIs,
                 incomingQLIIds
             );
 
+        Map<Id, String> productNamesById =
+            buildProductNamesById(products);
+
         addErrorsForProductsAlreadyOnQuote(
             newQLIs,
-            existingProductsByQuoteId
+            existingProductNamesByQuoteId
         );
 
         Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct =
             groupQuoteLineItemsByQuoteAndProduct(newQLIs);
 
         addErrorsForDuplicateProductsInTransaction(
-            qlisByQuoteAndProduct
+            qlisByQuoteAndProduct,
+            productNamesById
         );
     }
 
@@ -65,12 +73,26 @@ public inherited sharing class QuoteLineItemValidationService {
         return quoteLineItemIds;
     }
 
-    private static Map<Id, Set<Id>> buildExistingProductsByQuoteId(
+    private static Set<Id> collectProductIds(
+        List<QuoteLineItem> quoteLineItems
+    ) {
+        Set<Id> productIds = new Set<Id>();
+
+        for (QuoteLineItem qli : quoteLineItems) {
+            if (qli.Product2Id != null) {
+                productIds.add(qli.Product2Id);
+            }
+        }
+
+        return productIds;
+    }
+
+    private static Map<Id, Map<Id, String>> buildExistingProductNamesByQuoteId(
         List<QuoteLineItem> existingQLIs,
         Set<Id> incomingQLIIds
     ) {
-        Map<Id, Set<Id>> existingProductsByQuoteId =
-            new Map<Id, Set<Id>>();
+        Map<Id, Map<Id, String>> existingProductNamesByQuoteId =
+            new Map<Id, Map<Id, String>>();
 
         for (QuoteLineItem existingQLI : existingQLIs) {
 
@@ -86,24 +108,42 @@ public inherited sharing class QuoteLineItemValidationService {
                 continue;
             }
 
-            if (!existingProductsByQuoteId.containsKey(existingQLI.QuoteId)) {
-                existingProductsByQuoteId.put(
+            if (!existingProductNamesByQuoteId.containsKey(existingQLI.QuoteId)) {
+                existingProductNamesByQuoteId.put(
                     existingQLI.QuoteId,
-                    new Set<Id>()
+                    new Map<Id, String>()
                 );
             }
 
-            existingProductsByQuoteId
+            existingProductNamesByQuoteId
                 .get(existingQLI.QuoteId)
-                .add(existingQLI.Product2Id);
+                .put(
+                    existingQLI.Product2Id,
+                    existingQLI.Product2.Name
+                );
         }
 
-        return existingProductsByQuoteId;
+        return existingProductNamesByQuoteId;
+    }
+
+    private static Map<Id, String> buildProductNamesById(
+        List<Product2> products
+    ) {
+        Map<Id, String> productNamesById = new Map<Id, String>();
+
+        for (Product2 productRecord : products) {
+            productNamesById.put(
+                productRecord.Id,
+                productRecord.Name
+            );
+        }
+
+        return productNamesById;
     }
 
     private static void addErrorsForProductsAlreadyOnQuote(
         List<QuoteLineItem> newQLIs,
-        Map<Id, Set<Id>> existingProductsByQuoteId
+        Map<Id, Map<Id, String>> existingProductNamesByQuoteId
     ) {
         for (QuoteLineItem qli : newQLIs) {
 
@@ -111,15 +151,20 @@ public inherited sharing class QuoteLineItemValidationService {
                 continue;
             }
 
-            Set<Id> existingProducts =
-                existingProductsByQuoteId.get(qli.QuoteId);
+            Map<Id, String> existingProductNames =
+                existingProductNamesByQuoteId.get(qli.QuoteId);
 
             Boolean productAlreadyExistsOnQuote =
-                existingProducts != null &&
-                existingProducts.contains(qli.Product2Id);
+                existingProductNames != null &&
+                existingProductNames.containsKey(qli.Product2Id);
 
             if (productAlreadyExistsOnQuote) {
-                qli.addError(ERROR_EXISTING);
+                String productName =
+                    existingProductNames.get(qli.Product2Id);
+
+                qli.addError(
+                    formatErrorMessage(ERROR_EXISTING, productName)
+                );
             }
         }
     }
@@ -164,21 +209,40 @@ public inherited sharing class QuoteLineItemValidationService {
     }
 
     private static void addErrorsForDuplicateProductsInTransaction(
-        Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct
+        Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct,
+        Map<Id, String> productNamesById
     ) {
         for (Map<Id, List<QuoteLineItem>> qlisByProduct :
             qlisByQuoteAndProduct.values()
         ) {
-            for (List<QuoteLineItem> qliGroup : qlisByProduct.values()) {
+            for (Id productId : qlisByProduct.keySet()) {
+
+                List<QuoteLineItem> qliGroup =
+                    qlisByProduct.get(productId);
 
                 if (qliGroup.size() <= 1) {
                     continue;
                 }
 
+                String productName = productNamesById.get(productId);
+
                 for (QuoteLineItem qli : qliGroup) {
-                    qli.addError(ERROR_IN_MEMORY);
+                    qli.addError(
+                        formatErrorMessage(ERROR_IN_MEMORY, productName)
+                    );
                 }
             }
         }
     }
+
+    private static String formatErrorMessage(
+        String messageTemplate,
+        String productName
+    ) {
+        return String.format(
+            messageTemplate,
+            new List<String>{ productName }
+        );
+    }
 }
+ 
