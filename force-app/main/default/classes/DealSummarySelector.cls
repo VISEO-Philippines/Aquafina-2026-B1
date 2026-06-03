@@ -6,13 +6,13 @@ public class DealSummarySelector {
      * and keep business logic out of data retrieval.
      */
 
-    public static Opportunity getOpportunity(Id oppId) {
-        return [
+    public static Map<Id, Opportunity> getOpportunity(Set<Id> oppIds) {
+        return new Map<Id, Opportunity>([
             SELECT Id, Name, StageName, CloseDate, Amount, Account.Name
             FROM Opportunity
-            WHERE Id = :oppId
+            WHERE Id IN :oppIds
             LIMIT 1
-        ];
+        ]);
     }
 
     /*
@@ -21,11 +21,11 @@ public class DealSummarySelector {
      * finalized pricing state.
      */
 
-    public static Quote getPrimaryQuote(Id oppId) {
+    public static Map<Id, Quote> getPrimaryQuote(Set<Id> oppIds) {
         List<Quote> quotes = [
             SELECT Id, Name, Status, Discount, Effective_Discount__c
             FROM Quote
-            WHERE OpportunityId = :oppId
+            WHERE OpportunityId IN :oppIds
             AND IsSyncing = true
             LIMIT 1
         ];

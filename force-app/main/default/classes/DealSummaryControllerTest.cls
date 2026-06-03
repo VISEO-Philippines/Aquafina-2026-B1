@@ -1,123 +1,164 @@
 @IsTest
-public class DealSummaryControllerTest {
-    //negative test cases can be added to validate handling of null/invalid Ids, missing quotes, etc.
+private class DealSummaryControllerTest {
     /*
-     * Creates shared base test data for all test methods.
-     * This includes Account, multiple Opportunities, Product, 
-     * and PricebookEntry. Using @testSetup ensures data is created 
-     * once and reused, improving test efficiency and consistency.
+     * Creates minimal baseline data shared across all tests.
+     * Only includes reccords required for most scenarios:
+     * - Account (parent object)
+     * - Opportunitites (for testing different cases)
+     * - Product and PricebookEntry (Requiered for Quote Line Items)
      */
     @testSetup
     static void setup() {
 
-        // Create Account (parent record for Opportunities)
-        Account acc = new Account(Name = 'Bulk Test Account');
-        insert acc;
+        // Minimal Shared data only
+        Account acc = TestDataFactory.createAccount();
 
-        // Create multiple Opportunities to support bulk/repeated execution testing
-        List<Opportunity> opps = new List<Opportunity>();
-        for (Integer i = 0; i < 5; i++) {
-            opps.add(new Opportunity(
-                Name = 'Test Opp ' + i,
-                StageName = 'Prospecting',
-                CloseDate = Date.today(),
-                AccountId = acc.Id
-            ));
+        // create a few opportunities (baseline only)
+        for (Integer i = 0; i < 3; i++) {
+            TestDataFactory.createOpportunity(acc.Id);
         }
-        insert opps;
 
-        // Create Product used in Quote Line Items
-        Product2 prod = new Product2(
-            Name = 'Standard Product',
-            IsActive = true
-        );
-        insert prod;
+        Product2 prod = TestDataFactory.createProduct();
+        TestDataFactory.createPricebookEntry(prod.Id);
+    }
 
-        // Create PricebookEntry (required for QuoteLineItem)
-        insert new PricebookEntry(
-            Pricebook2Id = Test.getStandardPricebookId(),
-            Product2Id = prod.Id,
-            UnitPrice = 100,
-            IsActive = true
-        );
+    // Helpty method to create sales rep user and run tests as that user
+    private static User createAndValidateSalesRep() {
+        User salesRep = TestDataFactory.createSalesRepUser();
+        Assert.isNotNull(salesRep, 'Sales Rep should be created');
+        Assert.isNotNull(salesRep.Id, 'Sales Rep should have an Id');
+        return salesRep;
+    }
+
+    private static void assertRunningAs(User u) {
+        Assert.areEqual(u.Id, UserInfo.getUserId(), 'code should be running as the sales rep user');
+    }
+
+    @IsTest
+    static void testDealSummary_SyncedQuote() {
+
+        /*
+        * Scenario: Opp with a synced Quote and a Discount line Item
+        * - Validates correct calculation of totals and discount percentage
+        */
+
+        // Create a test user to simulate a Sales Rep persona 
+        User salesRep = createAndValidateSalesRep();
+        
+        System.runAs(salesRep) {
+            assertRunningAs(salesRep);
+
+            Account acc = [SELECT Id FROM Account LIMIT 1];
+            Opportunity opp = TestDataFactory.createOpportunity(acc.Id);
+           
+            PricebookEntry pbe = [
+                SELECT Id 
+                FROM PricebookEntry 
+                WHERE UnitPrice = 100 
+                LIMIT 1
+            ];
+
+            // Create a quote linked to opportunity
+            Quote q = TestDataFactory.createQuote(opp.Id);
+
+            // Apply 10% discount (100 -> 90)
+            TestDataFactory.createQuoteLineItem(q.Id, pbe.Id, 90);
+
+            // Link quote as synced
+            opp.SyncedQuoteId = q.Id;
+            update opp;
+
+            // Execute the method being tested
+            Test.startTest();
+            DealSummaryDTO result = 
+                DealSummaryController.getDealSummary(opp.Id);
+            Test.stopTest();
+
+            // Assertions to validate expected outcomes
+            Assert.isNotNull(result, 'Result should not be null');
+            Assert.areEqual(q.Id, result.quote.Id, 'Quote should be correctly linked in the result');
+            Assert.areEqual(100, result.totalList, 'Total list price should be correct');
+            Assert.areEqual(90, result.totalDiscounted, 'Total discounted price should be correct');
+            Assert.areEqual(10, result.discountPercent, 'Discount percentage should be correct');
+        }
     }
 
     /*
-     * Validates that the controller correctly:
-     * - Retrieves the synced quote
-     * - Calculates pricing values (discount)
-     * - Returns a fully populated DTO
-     */
+    * Scenario: Null Opportunity Id is passed
+    * Expected: Method should return null without errors
+    */
     @IsTest
-    static void testDealSummaryWithSyncedQuote() {
+    static void testDealSummary_NullOpportunityId() {
+        User salesRep = createAndValidateSalesRep();
 
-        // Retrieve base test data
-        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
-        PricebookEntry pbe = [SELECT Id FROM PricebookEntry LIMIT 1];
+        System.runAs(salesRep) {
+            assertRunningAs(salesRep);
 
-        // Create a synced Quote for the Opportunity
-        Quote q = new Quote(
-            Name = 'Synced Quote',
-            OpportunityId = opp.Id,
-            Pricebook2Id = Test.getStandardPricebookId()
-        );
-        insert q;
+            Test.startTest();
+            DealSummaryDTO result =
+                DealSummaryController.getDealSummary(null);
+            Test.stopTest();
 
-        // Create a discounted Quote Line Item (10% discount)
-        insert new QuoteLineItem(
-            QuoteId = q.Id,
-            Quantity = 1,
-            UnitPrice = 90, // Discount from $100 list price
-            PricebookEntryId = pbe.Id
-        );
-
-        // Link the Quote as the synced quote on the Opportunity
-        opp.SyncedQuoteId = q.Id;
-        update opp;
-
-        // Execute the method under test within limit-reset block
-        Test.startTest();
-        DealSummaryDTO result = DealSummaryController.getDealSummary(opp.Id);
-        Test.stopTest();
-
-        // Assertions: validate correctness of returned data
-        System.assertNotEquals(null, result, 'DTO should not be null');
-        System.assertEquals(q.Id, result.quote.Id, 'Should return the synced quote');
-        System.assertEquals(100, result.totalList, 'Total list price should match');
-        System.assertEquals(90, result.totalDiscounted, 'Discounted total should match');
-        System.assertEquals(10, result.discountPercent, 'Discount percentage should be 10%');
-
-        //note: scenario based testing
-    }
-
-    /*
-     * Validates that the controller can handle repeated execution
-     * within a single transaction without hitting governor limits.
-     * Ensures the logic is bulk-safe even if invoked multiple times.
-     */
-    @IsTest
-    static void testRepeatedExecutionDoesNotHitLimits() { //hindi valid.
-
-        // Retrieve all Opportunities created in test setup
-        Map<Id, Opportunity> oppMap =
-            new Map<Id, Opportunity>([SELECT Id FROM Opportunity]);
-
-        Test.startTest();
-
-        // Simulate repeated calls to the controller method
-        for (Id oppId : oppMap.keySet()) {
-            DealSummaryDTO result = DealSummaryController.getDealSummary(oppId);
-
-            // Basic validation to ensure method returns valid data each time
-            System.assertNotEquals(null, result, 'Result should not be null');
-            System.assertNotEquals(null, result.totalAmount, 'Total amount should be populated');
+            Assert.isNull(result, 'Result should be null for null input');
         }
-
-        Test.stopTest();
-
-        // If execution completes without limit exceptions,
-        // the method is safe under repeated execution
     }
 
+    @IsTest
+    static void testDealSummary_NoSyncedQuote() {
+        User salesRep = createAndValidateSalesRep();
 
+        System.runAs(salesRep) {
+            assertRunningAs(salesRep);
+
+            Account acc = [SELECT Id FROM Account LIMIT 1];
+            Opportunity opp = [
+                SELECT Id
+                FROM Opportunity 
+                WHERE AccountId = :acc.Id
+                LIMIT 1
+            ];
+
+            Test.startTest();
+            DealSummaryDTO result =
+                DealSummaryController.getDealSummary(opp.Id);
+            Test.stopTest();
+
+            Assert.isNotNull(result, 'Result should not be null');
+            Assert.isNull(result.quote, 'Quote should be null when no synced quote exists');
+        }
+    }
+
+    @IsTest
+    static void testDealSummary_MissingQuoteLineItems() {
+        User salesRep = createAndValidateSalesRep();
+
+        System.runAs(salesRep) {
+            assertRunningAs(salesRep);
+
+            Account acc = [SELECT Id FROM Account LIMIT 1];
+
+            Opportunity opp = [
+                SELECT Id
+                FROM Opportunity 
+                WHERE AccountId = :acc.Id
+                LIMIT 1
+            ];
+
+            Quote q = TestDataFactory.createQuote(opp.Id);
+
+            // Link quote as synced without line items
+            opp.SyncedQuoteId = q.Id;
+            update opp;
+
+            Test.startTest();
+            DealSummaryDTO result =
+                DealSummaryController.getDealSummary(opp.Id);
+            Test.stopTest();
+
+            Assert.isNotNull(result, 'Result should not be null');
+            Assert.isNotNull(result.quote, 'Quote should not be null');
+            Assert.areEqual(0, result.totalList, 'Total list price should be zero when no line items exist');
+            Assert.areEqual(0, result.totalDiscounted, 'Total discounted price should be zero when no line items exist');
+        }
+    }
 }
