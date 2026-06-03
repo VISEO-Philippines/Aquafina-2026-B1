@@ -190,4 +190,33 @@ private class DuplicateProductServiceTest {
 
         TestAssert.isTrue(true, 'No exception should be thrown for empty or null input');
     }
+
+    // ---------------------------------------------------------------------------
+    // filterChangedLines — only lines whose Product2Id changed relative to the
+    // old map must be included; lines with an unchanged product must be excluded.
+    // ---------------------------------------------------------------------------
+    @IsTest
+    static void filterChangedLines_returnsOnlyLinesWithChangedProduct() {
+        Id lineAId = '0bQ000000000001AAA';
+        Id lineBId = '0bQ000000000002AAA';
+        Id quoteId = '0Q0000000000001AAA';
+        Id prodAId = '01t000000000001AAA';
+        Id prodBId = '01t000000000002AAA';
+
+        QuoteLineItem unchangedNew = new QuoteLineItem(Id = lineAId, QuoteId = quoteId, Product2Id = prodAId);
+        QuoteLineItem changedNew   = new QuoteLineItem(Id = lineBId, QuoteId = quoteId, Product2Id = prodAId);
+
+        Map<Id, QuoteLineItem> oldMap = new Map<Id, QuoteLineItem>{
+            lineAId => new QuoteLineItem(Id = lineAId, QuoteId = quoteId, Product2Id = prodAId),
+            lineBId => new QuoteLineItem(Id = lineBId, QuoteId = quoteId, Product2Id = prodBId)
+        };
+
+        DuplicateProductService svc = new DuplicateProductService();
+        List<QuoteLineItem> filtered = svc.filterChangedLines(
+            new List<QuoteLineItem>{ unchangedNew, changedNew }, oldMap
+        );
+
+        TestAssert.equals(1, filtered.size(), 'Only the line with a changed product should be returned');
+        TestAssert.equals(lineBId, filtered[0].Id, 'Expected the changed line to be included');
+    }
 }

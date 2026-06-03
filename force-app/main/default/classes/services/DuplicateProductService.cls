@@ -1,12 +1,13 @@
 /**
  * Service for validating and detecting duplicate products in Quote Line Items.
  * Prevents adding the same product multiple times to a quote.
- * Uses QuoteLineItemSelector for data access.
+ * Uses QuoteLineItemSelector and Product2Selector for data access.
  */
 public with sharing class DuplicateProductService
 {
 
     private QuoteLineItemSelector qliSelector;
+    private Product2Selector      productSelector;
 
     private static final String DEFAULT_DUPLICATE_ERROR_MSG = 'Product already exists in this quote';
 
@@ -22,24 +23,26 @@ public with sharing class DuplicateProductService
      */
     public DuplicateProductService()
     {
-        this.qliSelector = new QuoteLineItemSelector();
+        this.qliSelector     = new QuoteLineItemSelector();
+        this.productSelector = new Product2Selector();
     }
 
     /**
      * Constructor allowing dependency injection for testing.
      *
-     * @param qliSelector QuoteLineItemSelector instance
+     * @param qliSelector     QuoteLineItemSelector instance
+     * @param productSelector Product2Selector instance
      */
-    public DuplicateProductService(QuoteLineItemSelector qliSelector)
+    public DuplicateProductService(QuoteLineItemSelector qliSelector, Product2Selector productSelector)
     {
-        this.qliSelector = qliSelector;
+        this.qliSelector     = qliSelector;
+        this.productSelector = productSelector;
     }
 
     /**
-     * Validates quote line items for duplicate products by loading existing
-     * quote line items and comparing them with the incoming records.
+     * Validates quote line items for duplicate products (insert path).
      *
-     * @param newLines List of new or updated QuoteLineItem records
+     * @param newLines List of new QuoteLineItem records
      */
     public void checkDuplicateProducts(List<QuoteLineItem> newLines)
     {
@@ -48,26 +51,72 @@ public with sharing class DuplicateProductService
             return;
         }
 
-        // Collect every Quote ID touched by this transaction
         Set<Id> quoteIds = new Set<Id>();
         for (QuoteLineItem line : newLines)
         {
             quoteIds.add(line.QuoteId);
         }
 
-        // Ask the database what products are already on those quotes
-        Map<Id, Set<Id>> existingProductMap = getExistingProductsByQuote(quoteIds);
-
-        // Run all three validation phases
-        validate(newLines, existingProductMap);
+        validate(newLines, getExistingProductsByQuote(quoteIds));
     }
 
-    // Queries existing lines and reshapes them into a Map<QuoteId, Set<ProductId>>
-    // so the validation step can do O(1) lookups instead of looping repeatedly.
+    /**
+     * Validates quote line items for duplicate products (update path).
+     * Only lines whose Product2Id changed are evaluated.
+     *
+     * @param newLines List of updated QuoteLineItem records
+     * @param oldMap   Map of QuoteLineItem records before the update
+     */
+    public void checkDuplicateProducts(List<QuoteLineItem> newLines, Map<Id, QuoteLineItem> oldMap)
+    {
+        if (newLines == null || newLines.isEmpty())
+        {
+            return;
+        }
+
+        checkDuplicateProducts(filterChangedLines(newLines, oldMap));
+    }
+
+    @TestVisible
+    private List<QuoteLineItem> filterChangedLines(
+        List<QuoteLineItem> newLines,
+        Map<Id, QuoteLineItem> oldMap
+    )
+    {
+        List<QuoteLineItem> changed = new List<QuoteLineItem>();
+
+        for (QuoteLineItem newLine : newLines)
+        {
+            QuoteLineItem oldLine = oldMap.get(newLine.Id);
+            if (oldLine == null || oldLine.Product2Id != newLine.Product2Id)
+            {
+                changed.add(newLine);
+            }
+        }
+
+        return changed;
+    }
+
     private Map<Id, Set<Id>> getExistingProductsByQuote(Set<Id> quoteIds)
     {
         List<QuoteLineItem> existingLines = this.qliSelector.getExistingLinesByQuoteIds(quoteIds);
-        return this.qliSelector.groupByQuoteAndProduct(existingLines);
+        return groupByQuoteAndProduct(existingLines);
+    }
+
+    private Map<Id, Set<Id>> groupByQuoteAndProduct(List<QuoteLineItem> lineItems)
+    {
+        Map<Id, Set<Id>> groupedMap = new Map<Id, Set<Id>>();
+
+        for (QuoteLineItem item : lineItems)
+        {
+            if (!groupedMap.containsKey(item.QuoteId))
+            {
+                groupedMap.put(item.QuoteId, new Set<Id>());
+            }
+            groupedMap.get(item.QuoteId).add(item.Product2Id);
+        }
+
+        return groupedMap;
     }
 
     // Orchestrates the three phases of duplicate detection.
@@ -91,7 +140,7 @@ public with sharing class DuplicateProductService
         Map<Id, String> productNames = new Map<Id, String>();
         if (!productIds.isEmpty())
         {
-            for (Product2 p : [SELECT Id, Name FROM Product2 WHERE Id IN :productIds WITH SECURITY_ENFORCED])
+            for (Product2 p : this.productSelector.getProductsByIds(productIds))
             {
                 productNames.put(p.Id, p.Name);
             }
