@@ -3,7 +3,7 @@ public with sharing class PriceBookModel {
     //}
 
     public static List<PriceBookEntry> getPriceBookEntry(List<Id> recordIds) {
-        if (recordIds.size() < 1) {
+        if (recordIds.isEmpty()) {
             Logger.error('Attempted to retrieve PriceBookEntry with empty recordId argument.');
             return new List<PriceBookEntry>();
         } else {
