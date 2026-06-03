@@ -37,15 +37,24 @@ public with sharing class DuplicateProductService
 
     public void validate(List<QuoteLineItem> newLines, Map<Id, Set<Id>> existingMap) 
     {
+        Map<String, Integer> incomingCounts = new Map<String, Integer>();
+
+        for (QuoteLineItem newLine : newLines)
+        {
+            String pairKey = this.getQuoteProductKey(newLine.QuoteId, newLine.Product2Id);
+            Integer currentCount = incomingCounts.containsKey(pairKey) ? incomingCounts.get(pairKey) : 0;
+            incomingCounts.put(pairKey, currentCount + 1);
+        }
+
         for (QuoteLineItem newLine : newLines) 
         {
-            if (existingMap.containsKey(newLine.QuoteId)) 
+            String pairKey = this.getQuoteProductKey(newLine.QuoteId, newLine.Product2Id);
+            Boolean duplicateInBatch = incomingCounts.containsKey(pairKey) && incomingCounts.get(pairKey) > 1;
+            Boolean duplicateInDatabase = existingMap.containsKey(newLine.QuoteId) && existingMap.get(newLine.QuoteId).contains(newLine.Product2Id);
+
+            if (duplicateInBatch || duplicateInDatabase) 
             {
-                Set<Id> existingProducts = existingMap.get(newLine.QuoteId);
-                if (existingProducts.contains(newLine.Product2Id)) 
-                {
-                    newLine.addError('Product already exists in this quote');
-                }
+                newLine.addError('Product already exists in this quote');
             }
         }
     }
@@ -84,5 +93,10 @@ public with sharing class DuplicateProductService
     {
         List<QuoteLineItem> existingLines = this.qliSelector.getExistingLinesByQuoteIds(quoteIds);
         return this.qliSelector.groupByQuoteAndProduct(existingLines);
+    }
+
+    private String getQuoteProductKey(Id quoteId, Id productId)
+    {
+        return String.valueOf(quoteId) + '|' + String.valueOf(productId);
     }
 }
