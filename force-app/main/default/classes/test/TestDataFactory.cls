@@ -55,7 +55,7 @@ public class TestDataFactory {
     }
 
     public static QuoteLineItem createQuoteLineItem(Quote q, PricebookEntry pbe, Integer qty, Decimal unitPrice) {
-        QuoteLineItem li = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = qty, UnitPrice = unitPrice);
+        QuoteLineItem li = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = qty, UnitPrice = unitPrice);
         insert li;
         return li;
     }

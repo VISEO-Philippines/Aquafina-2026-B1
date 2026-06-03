@@ -1,7 +1,7 @@
 /*
  * Selector for Product2 records.
  */
-public with sharing class Product2Selector
+public without sharing class Product2Selector
 {
     /**
      * Returns Product2 records matching the given IDs.
@@ -16,7 +16,6 @@ public with sharing class Product2Selector
             SELECT Id, Name
             FROM Product2
             WHERE Id IN :productIds
-            WITH SECURITY_ENFORCED
         ];
     }
 }

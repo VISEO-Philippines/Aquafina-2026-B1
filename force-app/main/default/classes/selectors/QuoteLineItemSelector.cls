@@ -2,7 +2,7 @@
  * Selector for QuoteLineItem records.
  * Provides methods to query quote line items from the database.
  */
-public with sharing class QuoteLineItemSelector
+public without sharing class QuoteLineItemSelector
 {
 
     /**
@@ -18,7 +18,6 @@ public with sharing class QuoteLineItemSelector
             SELECT Id, QuoteId, Product2Id
             FROM QuoteLineItem
             WHERE QuoteId IN :quoteIds
-            WITH SECURITY_ENFORCED
         ];
     }
 

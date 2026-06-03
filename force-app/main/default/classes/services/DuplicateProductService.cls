@@ -51,6 +51,8 @@ public with sharing class DuplicateProductService
             return;
         }
 
+        resolveMissingProduct2Ids(newLines);
+
         Set<Id> quoteIds = new Set<Id>();
         for (QuoteLineItem line : newLines)
         {
@@ -95,6 +97,36 @@ public with sharing class DuplicateProductService
         }
 
         return changed;
+    }
+
+    // In a before-insert trigger, Product2Id is null because the platform resolves it
+    // from PricebookEntryId only after the trigger fires. Query PricebookEntry to populate it.
+    private void resolveMissingProduct2Ids(List<QuoteLineItem> lines)
+    {
+        Set<Id> pbeIds = new Set<Id>();
+        for (QuoteLineItem line : lines)
+        {
+            if (line.Product2Id == null && line.PricebookEntryId != null)
+            {
+                pbeIds.add(line.PricebookEntryId);
+            }
+        }
+
+        if (pbeIds.isEmpty()) return;
+
+        Map<Id, Id> pbeToProduct2 = new Map<Id, Id>();
+        for (PricebookEntry pbe : [SELECT Id, Product2Id FROM PricebookEntry WHERE Id IN :pbeIds])
+        {
+            pbeToProduct2.put(pbe.Id, pbe.Product2Id);
+        }
+
+        for (QuoteLineItem line : lines)
+        {
+            if (line.Product2Id == null && line.PricebookEntryId != null)
+            {
+                line.Product2Id = pbeToProduct2.get(line.PricebookEntryId);
+            }
+        }
     }
 
     private Map<Id, Set<Id>> getExistingProductsByQuote(Set<Id> quoteIds)

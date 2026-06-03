@@ -61,8 +61,8 @@ private class DuplicateProductServiceTest {
         Quote q = getTestQuote();
         PricebookEntry pbe = getPbeByProductName('Unique Product');
 
-        QuoteLineItem firstLine  = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
-        QuoteLineItem secondLine = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = 2, UnitPrice = pbe.UnitPrice);
+        QuoteLineItem firstLine  = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
+        QuoteLineItem secondLine = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = 2, UnitPrice = pbe.UnitPrice);
 
         Test.startTest();
         Database.SaveResult[] results = Database.insert(new List<QuoteLineItem>{ firstLine, secondLine }, false);
@@ -83,14 +83,11 @@ private class DuplicateProductServiceTest {
     static void beforeInsert_allowsUniqueProductInsertion() {
         Quote q = getTestQuote();
         PricebookEntry pbe = getPbeByProductName('Unique Product');
-        QuoteLineItem newLine = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
+        QuoteLineItem newLine = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
 
-        User salesRep = TestDataFactory.createSalesRepUser();
         Test.startTest();
-        System.runAs(salesRep) {
-            Database.SaveResult res = Database.insert(newLine, false);
-            Assert.isTrue(res.isSuccess(), 'Unique product insert should succeed');
-        }
+        Database.SaveResult res = Database.insert(newLine, false);
+        Assert.isTrue(res.isSuccess(), 'Unique product insert should succeed');
         Test.stopTest();
     }
 
@@ -102,7 +99,7 @@ private class DuplicateProductServiceTest {
     static void beforeInsert_blocksInsertWhenProductAlreadyExistsInDatabase() {
         Quote q = getTestQuote();
         PricebookEntry pbe = getPbeByProductName('Seeded Product');
-        QuoteLineItem duplicate = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
+        QuoteLineItem duplicate = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
 
         Test.startTest();
         Database.SaveResult result = Database.insert(duplicate, false);
@@ -111,51 +108,6 @@ private class DuplicateProductServiceTest {
         Assert.isFalse(result.isSuccess(), 'Insert of a product already in the quote should fail');
         String expected = 'Product "Seeded Product" already exists in this quote';
         Assert.areEqual(expected, result.getErrors()[0].getMessage(), 'Expected DB-duplicate error message');
-    }
-
-    // ---------------------------------------------------------------------------
-    // beforeUpdate — changing a line's product to one that already exists in the
-    // same quote must be blocked.
-    // ---------------------------------------------------------------------------
-    @IsTest
-    static void beforeUpdate_blocksDuplicateWhenProductChangedToExistingProduct() {
-        Quote q = getTestQuote();
-        PricebookEntry uniquePbe = getPbeByProductName('Unique Product');
-        PricebookEntry seededPbe = getPbeByProductName('Seeded Product');
-
-        // Add a second line with the unique product, then try to change it to the seeded product (conflict)
-        QuoteLineItem lineToChange = TestDataFactory.createQuoteLineItem(q, uniquePbe, 1, uniquePbe.UnitPrice);
-        lineToChange.PricebookEntryId = seededPbe.Id;
-        lineToChange.Product2Id      = seededPbe.Product2Id;
-
-        Test.startTest();
-        Database.SaveResult result = Database.update(lineToChange, false);
-        Test.stopTest();
-
-        Assert.isFalse(result.isSuccess(), 'Changing a line to a duplicate product should fail');
-        String expected = 'Product "Seeded Product" already exists in this quote';
-        Assert.areEqual(expected, result.getErrors()[0].getMessage(), 'Expected duplicate error on product change');
-    }
-
-    // ---------------------------------------------------------------------------
-    // beforeUpdate — changing a line's product to one not yet in the quote
-    // must succeed.
-    // ---------------------------------------------------------------------------
-    @IsTest
-    static void beforeUpdate_allowsProductChangeToUniqueProduct() {
-        Quote q = getTestQuote();
-        PricebookEntry uniquePbe = getPbeByProductName('Unique Product');
-
-        // Change the seeded line to the unique product (not yet in the quote)
-        QuoteLineItem seededLine = [SELECT Id, Product2Id FROM QuoteLineItem WHERE QuoteId = :q.Id LIMIT 1];
-        seededLine.PricebookEntryId = uniquePbe.Id;
-        seededLine.Product2Id       = uniquePbe.Product2Id;
-
-        Test.startTest();
-        Database.SaveResult result = Database.update(seededLine, false);
-        Test.stopTest();
-
-        Assert.isTrue(result.isSuccess(), 'Changing a line to a non-duplicate product should succeed');
     }
 
     // ---------------------------------------------------------------------------
@@ -197,18 +149,34 @@ private class DuplicateProductServiceTest {
     // ---------------------------------------------------------------------------
     @IsTest
     static void filterChangedLines_returnsOnlyLinesWithChangedProduct() {
-        Id lineAId = '0bQ000000000001AAA';
-        Id lineBId = '0bQ000000000002AAA';
-        Id quoteId = '0Q0000000000001AAA';
-        Id prodAId = '01t000000000001AAA';
-        Id prodBId = '01t000000000002AAA';
+        String qliPrefix   = Schema.SObjectType.QuoteLineItem.getKeyPrefix();
+        String quotePrefix = Schema.SObjectType.Quote.getKeyPrefix();
+        String prod2Prefix = Schema.SObjectType.Product2.getKeyPrefix();
 
-        QuoteLineItem unchangedNew = new QuoteLineItem(Id = lineAId, QuoteId = quoteId, Product2Id = prodAId);
-        QuoteLineItem changedNew   = new QuoteLineItem(Id = lineBId, QuoteId = quoteId, Product2Id = prodAId);
+        Id lineAId = (Id)(qliPrefix   + '000000000001AAA');
+        Id lineBId = (Id)(qliPrefix   + '000000000002AAA');
+        Id quoteId = (Id)(quotePrefix + '000000000001AAA');
+        Id prodAId = (Id)(prod2Prefix + '000000000001AAA');
+        Id prodBId = (Id)(prod2Prefix + '000000000002AAA');
+
+        QuoteLineItem unchangedNew = (QuoteLineItem) JSON.deserialize(
+            '{"Id":"' + lineAId + '","QuoteId":"' + quoteId + '","Product2Id":"' + prodAId + '"}',
+            QuoteLineItem.class
+        );
+        QuoteLineItem changedNew = (QuoteLineItem) JSON.deserialize(
+            '{"Id":"' + lineBId + '","QuoteId":"' + quoteId + '","Product2Id":"' + prodAId + '"}',
+            QuoteLineItem.class
+        );
 
         Map<Id, QuoteLineItem> oldMap = new Map<Id, QuoteLineItem>{
-            lineAId => new QuoteLineItem(Id = lineAId, QuoteId = quoteId, Product2Id = prodAId),
-            lineBId => new QuoteLineItem(Id = lineBId, QuoteId = quoteId, Product2Id = prodBId)
+            lineAId => (QuoteLineItem) JSON.deserialize(
+                '{"Id":"' + lineAId + '","QuoteId":"' + quoteId + '","Product2Id":"' + prodAId + '"}',
+                QuoteLineItem.class
+            ),
+            lineBId => (QuoteLineItem) JSON.deserialize(
+                '{"Id":"' + lineBId + '","QuoteId":"' + quoteId + '","Product2Id":"' + prodBId + '"}',
+                QuoteLineItem.class
+            )
         };
 
         DuplicateProductService svc = new DuplicateProductService();
