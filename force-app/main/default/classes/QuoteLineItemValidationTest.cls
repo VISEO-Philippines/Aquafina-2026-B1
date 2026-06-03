@@ -35,7 +35,8 @@ private class QuoteLineItemValidationTest {
 
     @isTest
     static void productNotRepeatedInsertOneAcceptedQLItest() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
             // Get OppA QuoteLineItems for copying
@@ -78,7 +79,7 @@ private class QuoteLineItemValidationTest {
 
     @isTest
     static void productNotRepeatedInsertOneRejectedQLItest() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
             // Get OppA QuoteLineItems for copying
@@ -115,7 +116,7 @@ private class QuoteLineItemValidationTest {
 
     @isTest
     static void productNotRepeatedInsertMultipleQLItest() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
             // Get OppA QuoteLineItems for copying
@@ -158,7 +159,7 @@ private class QuoteLineItemValidationTest {
     // TODO: SWITCH THIS TO UPDATE, try inserting
     @isTest
     static void productNotRepeatedUpdateAndInsertAcceptedQLI() {
-        User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+        User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
             // Get OppA QuoteLineItems for copying

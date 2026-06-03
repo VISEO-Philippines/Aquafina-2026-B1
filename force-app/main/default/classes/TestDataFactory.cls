@@ -41,6 +41,17 @@ public with sharing class TestDataFactory {
         return u;
     }
 	
+    public static User commonSrep {
+        get {
+            List<User> sRepFrance1 = new List<User>();
+            sRepFrance1 = [SELECT Id FROM User WHERE Username = 'sRepFrance1@test.com'];
+            if (sRepFrance1.size() < 1) {
+                sRepFrance1.add(TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France'));
+            }
+            return sRepFrance1[0];
+        }
+    }
+
     // TODO: Check if it is possible to refactor this to easily test role-based sharing instead of Territory__c field based sharing
     // perhaps allow territory to be null? <- recheck in org
     public static Lead createTestLead(String email, String territory, Id ownerId) {

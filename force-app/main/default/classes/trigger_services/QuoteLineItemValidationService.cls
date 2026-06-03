@@ -56,7 +56,6 @@ public with sharing class QuoteLineItemValidationService {
 
         for (QuoteLineItem qli : qlis) {
             String quoteProductKey = qli.QuoteId + '-' + pbeToProduct2.get(qli.PricebookEntryId);
-            Logger.info('qpkey: ' + quoteProductKey);
 
             // Does the key exist in the database?
             if (existingQuoteProductKeys.contains(quoteProductKey)) {
@@ -88,7 +87,6 @@ public with sharing class QuoteLineItemValidationService {
         Set<Id> qliPbeIds = new Set<Id>();
 
         retrieveIdsFromTrigger(qlis, qliQuoteIds, qliPbeIds);
-
         Map<Id, Id> pbeToProduct2 = getPbeToProduct2Mapping(qliPbeIds);
         Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis);
         validateDuplicateProducts(qlis, pbeToProduct2, existingQuoteProductKeys);
