@@ -68,11 +68,11 @@ private class DuplicateProductServiceTest {
         Database.SaveResult[] results = Database.insert(new List<QuoteLineItem>{ firstLine, secondLine }, false);
         Test.stopTest();
 
-        TestAssert.isFalse(results[0].isSuccess(), 'First same-batch duplicate should fail');
-        TestAssert.isFalse(results[1].isSuccess(), 'Second same-batch duplicate should fail');
+        Assert.isFalse(results[0].isSuccess(), 'First same-batch duplicate should fail');
+        Assert.isFalse(results[1].isSuccess(), 'Second same-batch duplicate should fail');
         String expected = 'Product "Unique Product" already exists in this quote';
-        TestAssert.equals(expected, results[0].getErrors()[0].getMessage(), 'Expected exact duplicate message on first row');
-        TestAssert.equals(expected, results[1].getErrors()[0].getMessage(), 'Expected exact duplicate message on second row');
+        Assert.areEqual(expected, results[0].getErrors()[0].getMessage(), 'Expected exact duplicate message on first row');
+        Assert.areEqual(expected, results[1].getErrors()[0].getMessage(), 'Expected exact duplicate message on second row');
     }
 
     // ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ private class DuplicateProductServiceTest {
         Test.startTest();
         System.runAs(salesRep) {
             Database.SaveResult res = Database.insert(newLine, false);
-            TestAssert.isTrue(res.isSuccess(), 'Unique product insert should succeed');
+            Assert.isTrue(res.isSuccess(), 'Unique product insert should succeed');
         }
         Test.stopTest();
     }
@@ -108,9 +108,9 @@ private class DuplicateProductServiceTest {
         Database.SaveResult result = Database.insert(duplicate, false);
         Test.stopTest();
 
-        TestAssert.isFalse(result.isSuccess(), 'Insert of a product already in the quote should fail');
+        Assert.isFalse(result.isSuccess(), 'Insert of a product already in the quote should fail');
         String expected = 'Product "Seeded Product" already exists in this quote';
-        TestAssert.equals(expected, result.getErrors()[0].getMessage(), 'Expected DB-duplicate error message');
+        Assert.areEqual(expected, result.getErrors()[0].getMessage(), 'Expected DB-duplicate error message');
     }
 
     // ---------------------------------------------------------------------------
@@ -132,9 +132,9 @@ private class DuplicateProductServiceTest {
         Database.SaveResult result = Database.update(lineToChange, false);
         Test.stopTest();
 
-        TestAssert.isFalse(result.isSuccess(), 'Changing a line to a duplicate product should fail');
+        Assert.isFalse(result.isSuccess(), 'Changing a line to a duplicate product should fail');
         String expected = 'Product "Seeded Product" already exists in this quote';
-        TestAssert.equals(expected, result.getErrors()[0].getMessage(), 'Expected duplicate error on product change');
+        Assert.areEqual(expected, result.getErrors()[0].getMessage(), 'Expected duplicate error on product change');
     }
 
     // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ private class DuplicateProductServiceTest {
         Database.SaveResult result = Database.update(seededLine, false);
         Test.stopTest();
 
-        TestAssert.isTrue(result.isSuccess(), 'Changing a line to a non-duplicate product should succeed');
+        Assert.isTrue(result.isSuccess(), 'Changing a line to a non-duplicate product should succeed');
     }
 
     // ---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ private class DuplicateProductServiceTest {
         Database.SaveResult result = Database.update(seededLine, false);
         Test.stopTest();
 
-        TestAssert.isTrue(result.isSuccess(), 'A quantity-only update should not be blocked by duplicate validation');
+        Assert.isTrue(result.isSuccess(), 'A quantity-only update should not be blocked by duplicate validation');
     }
 
     // ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ private class DuplicateProductServiceTest {
         svc.checkDuplicateProducts(null);
         Test.stopTest();
 
-        TestAssert.isTrue(true, 'No exception should be thrown for empty or null input');
+        Assert.isTrue(true, 'No exception should be thrown for empty or null input');
     }
 
     // ---------------------------------------------------------------------------
@@ -216,7 +216,7 @@ private class DuplicateProductServiceTest {
             new List<QuoteLineItem>{ unchangedNew, changedNew }, oldMap
         );
 
-        TestAssert.equals(1, filtered.size(), 'Only the line with a changed product should be returned');
-        TestAssert.equals(lineBId, filtered[0].Id, 'Expected the changed line to be included');
+        Assert.areEqual(1, filtered.size(), 'Only the line with a changed product should be returned');
+        Assert.areEqual(lineBId, filtered[0].Id, 'Expected the changed line to be included');
     }
 }

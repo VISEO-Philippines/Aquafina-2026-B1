@@ -61,15 +61,13 @@ public class TestDataFactory {
     }
 
     public static User createSalesRepUser() {
-        // Try to find a standard user profile; fallback to first profile
-        Profile profile;
-        List<Profile> profiles = [SELECT Id, Name FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        List<Profile> profiles = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
         if (profiles.isEmpty()) {
-            profiles = [SELECT Id, Name FROM Profile LIMIT 1];
+            profiles = [SELECT Id FROM Profile LIMIT 1];
         }
-        profile = profiles[0];
 
-        // Unique username for test run
+        List<UserRole> roles = [SELECT Id FROM UserRole WHERE DeveloperName = 'Sales_Rep_France_South' LIMIT 1];
+
         String unique = String.valueOf(Datetime.now().getTime());
         User u = new User(
             Alias = 'tst' + unique.substring(0, Math.min(4, unique.length())),
@@ -80,7 +78,8 @@ public class TestDataFactory {
             LocaleSidKey = 'en_US',
             TimeZoneSidKey = 'America/Los_Angeles',
             Username = 'testuser+' + unique + '@example.com',
-            ProfileId = profile.Id
+            ProfileId = profiles[0].Id,
+            UserRoleId = roles.isEmpty() ? null : roles[0].Id
         );
         insert u;
         return u;
