@@ -1,5 +1,20 @@
 public with sharing class QuoteLineItemValidationService {
-    static void retrieveIdsFromTrigger(List<QuoteLineItem> qlis, Set<Id> qliQuoteIds, Set<Id> qliPbeIds) {
+    public static void enforceProductNotRepeated(List<QuoteLineItem> qlis) {
+        Logger.info('QuoteLineItemValidation-enforceProductNotRepeated started');
+
+        Set<Id> qliQuoteIds = new Set<Id>();
+        Set<Id> qliPbeIds = new Set<Id>();
+
+        retrieveIdsFromTrigger(qlis, qliQuoteIds, qliPbeIds);
+        Map<Id, Id> pbeToProduct2 = getPbeToProduct2Mapping(qliPbeIds);
+        Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis);
+        validateDuplicateProducts(qlis, pbeToProduct2, existingQuoteProductKeys);
+        Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
+
+        Logger.saveLog();
+    }
+    
+    private static void retrieveIdsFromTrigger(List<QuoteLineItem> qlis, Set<Id> qliQuoteIds, Set<Id> qliPbeIds) {
         // Setting up for retrieval of Quotes from Database to to query QuoteLineItems AND Pricebook entries, we need to query the latter since Product2Id is not populated before insert
         for (QuoteLineItem qli: qlis) {
             qliQuoteIds.add(qli.QuoteId);
@@ -7,7 +22,7 @@ public with sharing class QuoteLineItemValidationService {
         }
     }
 
-    static Map<Id, Id> getPbeToProduct2Mapping(Set<Id> qliPbeIds) {
+    private static Map<Id, Id> getPbeToProduct2Mapping(Set<Id> qliPbeIds) {
         // Setting up mappings from PriceBookEntryId to Product2Id since we need the Product2 as part of reqs
         Map<Id, Id> pbeToProduct2 = new Map<Id, Id>();
         List<PriceBookEntry> pbes = PriceBookModel.getPriceBookEntry(new List<Id>(qliPbeIds));
@@ -17,7 +32,7 @@ public with sharing class QuoteLineItemValidationService {
         return pbeToProduct2;
     }
 
-    static Set<String> retrieveQuoteProductKeysFromDatabase(Set<Id> qliQuoteIds, List<QuoteLineItem> qlis) {
+    private static Set<String> retrieveQuoteProductKeysFromDatabase(Set<Id> qliQuoteIds, List<QuoteLineItem> qlis) {
         // Retrieval of QuoteLineItems from database using QuoteIds from Setup
         Set<String> existingQuoteProductKeys = new Set<String>();
 
@@ -48,7 +63,7 @@ public with sharing class QuoteLineItemValidationService {
         return existingQuoteProductKeys;
     }
 
-    static void validateDuplicateProducts(List<QuoteLineItem> qlis, Map<Id, Id> pbeToProduct2, Set<String> existingQuoteProductKeys) {
+    private static void validateDuplicateProducts(List<QuoteLineItem> qlis, Map<Id, Id> pbeToProduct2, Set<String> existingQuoteProductKeys) {
         // We add QuoteLineItems from the batch here if their QuoteProduct Key pair is unique (first seen)
         Map<String, QuoteLineItem> seenQLIs = new Map<String, QuoteLineItem>();
         // We add QuoteId-ProductId string pair here if an error has already been added, only applies to keys that are unique and thus have been added to the seenQLIs Map
@@ -80,18 +95,5 @@ public with sharing class QuoteLineItemValidationService {
         }
     }
     
-    public static void enforceProductNotRepeated(List<QuoteLineItem> qlis) {
-        Logger.info('QuoteLineItemValidation-enforceProductNotRepeated started');
 
-        Set<Id> qliQuoteIds = new Set<Id>();
-        Set<Id> qliPbeIds = new Set<Id>();
-
-        retrieveIdsFromTrigger(qlis, qliQuoteIds, qliPbeIds);
-        Map<Id, Id> pbeToProduct2 = getPbeToProduct2Mapping(qliPbeIds);
-        Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis);
-        validateDuplicateProducts(qlis, pbeToProduct2, existingQuoteProductKeys);
-        Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
-
-        Logger.saveLog();
-    }
 }
