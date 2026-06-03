@@ -33,7 +33,6 @@ public with sharing class DuplicateProductService
      * 
      * @param newLines List of new QuoteLineItem records to validate
      * @param existingMap Map of existing QuoteLineItem records by Quote ID and Product ID
-     * @throws DuplicateProductException if a duplicate product is detected
      */
 
     public void validate(List<QuoteLineItem> newLines, Map<Id, Set<Id>> existingMap) 
@@ -45,12 +44,7 @@ public with sharing class DuplicateProductService
                 Set<Id> existingProducts = existingMap.get(newLine.QuoteId);
                 if (existingProducts.contains(newLine.Product2Id)) 
                 {
-                    DuplicateProductException ex = new DuplicateProductException('Product already exists in this quote');
-                    ex.productName = 'Product with ID: ' + newLine.Product2Id;
-                    ex.quoteId = newLine.QuoteId;
-                    ex.lineItemId = newLine.Id;
-                    ex.productId = newLine.Product2Id;
-                    throw ex;
+                    newLine.addError('Product already exists in this quote');
                 }
             }
         }
@@ -61,7 +55,6 @@ public with sharing class DuplicateProductService
      * quote line items and comparing them with the incoming records.
      *
      * @param newLines List of new or updated QuoteLineItem records
-     * @throws DuplicateProductException if a duplicate product is detected
      */
     public void checkDuplicateProducts(List<QuoteLineItem> newLines)
     {
