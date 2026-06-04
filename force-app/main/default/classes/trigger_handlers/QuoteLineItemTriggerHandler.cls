@@ -8,12 +8,12 @@ public with sharing class QuoteLineItemTriggerHandler extends TriggerHandler {
     public override void beforeInsert() {
         Logger.info('QuoteLineItem-beforeInsert triggered with ' + Trigger.new.size() + ' records.');
         // FOR AP2-US-0002 call QuoteLockService(Trigger.new) - must filter out records that are inserting to Quote records that are locked due to Quote Status = In Review - has to return filtered list potential problem is this does not propagate, if for example we are locking opportunity, only the objects that reference the opportunityId can cleanly reuse this. Quote Line item for example cannot be locked since it has a reference to quote which references opportunity.
-        QuoteLineItemValidationService.enforceProductNotRepeated(Trigger.new);
+        QuoteLineItemValidationService.enforceProductNotRepeated(Trigger.new, new List<QuoteLineItem>());
     }
 
     public override void beforeUpdate() {
         Logger.info('QuoteLineItem-beforeUpdate triggered with ' + Trigger.new.size() + ' records.');
         // FOR AP2-US-0002 call QuoteLockService(Trigger.new) - must filter out records that are inserting to Quote records that are locked due to Quote Status = In Review - has to return filtered list
-        QuoteLineItemValidationService.enforceProductNotRepeated(Trigger.new);
+        QuoteLineItemValidationService.enforceProductNotRepeated(Trigger.new, Trigger.old);
     }
 }

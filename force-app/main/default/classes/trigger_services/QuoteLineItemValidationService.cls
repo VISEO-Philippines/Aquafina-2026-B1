@@ -3,7 +3,7 @@ public with sharing class QuoteLineItemValidationService {
     private static final String DUPLICATE_BATCH_ERROR = 'QuoteLineItem cannot be added as another QuoteLineItem with the same Product in the same Quote is repeated in this batch.';
 
 
-    public static void enforceProductNotRepeated(List<QuoteLineItem> qlis) {
+    public static void enforceProductNotRepeated(List<QuoteLineItem> qlis, List<QuoteLineItem> oldqlis) {
         Logger.info('QuoteLineItemValidation-enforceProductNotRepeated started');
 
         Set<Id> qliQuoteIds = new Set<Id>();
@@ -11,7 +11,7 @@ public with sharing class QuoteLineItemValidationService {
 
         retrieveIdsFromTrigger(qlis, qliQuoteIds, qliPbeIds);
         Map<Id, Id> pbeToProduct2 = getPbeToProduct2Mapping(qliPbeIds);
-        Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis);
+        Set<String> existingQuoteProductKeys = retrieveQuoteProductKeysFromDatabase(qliQuoteIds, qlis, oldqlis);
         validateDuplicateProducts(qlis, pbeToProduct2, existingQuoteProductKeys);
         Logger.debug('Got ' + existingQuoteProductKeys.size() + ' existing QuoteProductpair keys from database.');
 
@@ -21,7 +21,7 @@ public with sharing class QuoteLineItemValidationService {
     private static void retrieveIdsFromTrigger(List<QuoteLineItem> qlis, Set<Id> qliQuoteIds, Set<Id> qliPbeIds) {
         // Setting up for retrieval of Quotes from Database to to query QuoteLineItems AND Pricebook entries, we need to query the latter since Product2Id is not populated before insert
         for (QuoteLineItem qli: qlis) {
-            qliQuoteIds.add(qli.QuoteIgit d);
+            qliQuoteIds.add(qli.QuoteId);
             qliPbeIds.add(qli.PricebookEntryId);
         }
     }
@@ -36,7 +36,7 @@ public with sharing class QuoteLineItemValidationService {
         return pbeToProduct2;
     }
 
-    private static Set<String> retrieveQuoteProductKeysFromDatabase(Set<Id> qliQuoteIds, List<QuoteLineItem> qlis) {
+    private static Set<String> retrieveQuoteProductKeysFromDatabase(Set<Id> qliQuoteIds, List<QuoteLineItem> qlis, List<QuoteLineItem> oldqlis) {
         // Retrieval of QuoteLineItems from database using QuoteIds from Setup
         Set<String> existingQuoteProductKeys = new Set<String>();
 
@@ -46,10 +46,16 @@ public with sharing class QuoteLineItemValidationService {
 
         // Get all the IDs of the incoming QLIs, incoming insert records will have null, while existing records have populated ids that are updates
         // if it is an update then we will ignore that in comparison since that data is already rendered stale by the incoming insert.
+        List<Id> oldQLIIds = new List<Id>(new Map<Id, SObject>(oldqlis).keySet());
         Set<Id> triggeredQLIIds = new Set<Id>();
         for (QuoteLineItem qli: qlis) {
-            if (qli.Id != null)
-                triggeredQLIIds.add(qli.Id);
+            // This means this is NOT an insert, will replace this with Trigger.old
+            if (qli.Id != null) {
+                // further enforces that this is an update, we are checking Trigger.new if both Trigger.new and Trigger.old contains the same Id then it is an update. possible problem here is that Trigger.new is also populated during undeletes and we still dont know if they will be included here but they might not be relevant since deleted objects are not queried during normal SOQL queries.
+                // TL;DR this additional requirement for 'ignoring' database entries is redundant, it should work even if we remove the if statement below.
+                if (oldQLIIds.contains(qli.Id))
+                    triggeredQLIIds.add(qli.Id);
+            }
         }
 
         for (QuoteLineItem qli : existingQLIs) {
