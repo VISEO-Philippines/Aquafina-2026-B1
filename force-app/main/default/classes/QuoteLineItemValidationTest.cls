@@ -38,8 +38,8 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
-            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
+            Quote baselineQuote = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
+            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :baselineQuote.Id];
             List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
@@ -76,8 +76,8 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
-            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
+            Quote baselineQuote = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
+            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :baselineQuote.Id];
             List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
@@ -85,7 +85,7 @@ private class QuoteLineItemValidationTest {
 
             // Get Quote where to test
             Quote qt = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppBQuote2'];
-            List<QuoteLineItem> dbqlis = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :qt.Id];
+            List<QuoteLineItem> dbqlis = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt.Id];
 
             Assert.areEqual(1, dbqlis.size(), 'OppBQuoteB not initialized properly.');
 
@@ -98,8 +98,13 @@ private class QuoteLineItemValidationTest {
             Test.startTest();
             Database.SaveResult[] results = Database.insert(batchOfQLIs, false);
             Test.stopTest();
-
-            Assert.isFalse(results[0].isSuccess() && results[1].isSuccess(), 'An insert of a QLI with existing product in the database has succeeded but should have failed.');
+            if (dbqlis[0].PriceBookEntryId == pbeIds[0]) {
+                Assert.isTrue(results[1].isSuccess(), 'A QLI has been inserted despite repeated product.');
+                Assert.isFalse(results[0].isSuccess(), 'A QLI has been rejected despite no repeated products.');
+            } else {
+                Assert.isTrue(results[0].isSuccess(), 'A QLI has been inserted despite repeated product.');
+                Assert.isFalse(results[1].isSuccess(), 'A QLI has been rejected despite no repeated products.');
+            }
         }
     }
 
@@ -108,8 +113,8 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
-            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
+            Quote baselineQuote = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
+            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :baselineQuote.Id];
             List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
@@ -147,8 +152,8 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
-            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
+            Quote baselineQuote = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
+            List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :baselineQuote.Id];
             List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
