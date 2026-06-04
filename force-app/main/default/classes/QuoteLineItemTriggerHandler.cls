@@ -1,10 +1,10 @@
 public class QuoteLineItemTriggerHandler extends TriggerHandler {
     
     public override void beforeInsert(){
-        QuoteLineItemValidatorService.validateNewProducts();
+        QuoteLineItemValidatorService.validateProducts(Trigger.new);
     }
 
     public override void beforeUpdate(){
-        QuoteLineItemValidatorService.validateNewProducts();
+        QuoteLineItemValidatorService.validateProducts(Trigger.new);
     }
 }
