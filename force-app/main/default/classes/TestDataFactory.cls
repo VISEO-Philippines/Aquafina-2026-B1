@@ -41,6 +41,17 @@ public with sharing class TestDataFactory {
         return u;
     }
 	
+    public static User commonSrep {
+        get {
+            List<User> sRepFrance1 = new List<User>();
+            sRepFrance1 = [SELECT Id FROM User WHERE Username = 'sRepFrance1@test.com'];
+            if (sRepFrance1.size() < 1) {
+                sRepFrance1.add(TestDataFactory.createTestUserSalesRep('sRepFrance1@test.com','France'));
+            }
+            return sRepFrance1[0];
+        }
+    }
+
     // TODO: Check if it is possible to refactor this to easily test role-based sharing instead of Territory__c field based sharing
     // perhaps allow territory to be null? <- recheck in org
     public static Lead createTestLead(String email, String territory, Id ownerId) {
@@ -62,21 +73,75 @@ public with sharing class TestDataFactory {
 
         return testLead;
     }
+
+    public static List<Opportunity> generateOpportunity(String name, Integer count) {
+        List<Opportunity> opps = new List<Opportunity>();
+        for (Integer i = 1; i < count+1; i++) {
+            opps.add(
+                new Opportunity(
+                    Name = name + i,
+                    StageName = 'Prospecting',
+                    CloseDate = Date.today().addDays(1)
+                )
+            );
+        }
+
+        insert opps;
+        return opps;
+    }
+
+    public static List<Quote> generateQuote(String name, Id oppId, Id pricebook2Id, Integer count) {
+        List<Quote> quotes = new List<Quote>();
+        for (Integer i = 1; i < count+1; i++) {
+            quotes.add(
+                new Quote(
+                    Name = name + i,
+                    OpportunityId = oppId,
+                    Pricebook2Id = pricebook2Id
+                )
+            );
+        }
+        
+        insert quotes;
+        return quotes;
+    }
+
+    public static List<QuoteLineItem> generateQuoteWithLineItems(String name, Id quoteId, Id oppId, List<PriceBookEntry> pbes) {
+        List<QuoteLineItem> qlis = new List<QuoteLineItem>();
+        for (PriceBookEntry pbe : pbes) {
+            qlis.add(
+                new QuoteLineItem(
+                    QuoteId = quoteId,
+                    PriceBookEntryId = pbe.Id,
+                    Quantity = 10,
+                    UnitPrice = pbe.UnitPrice
+                )
+            );
+        }
+
+        insert qlis;
+        return qlis;
+    }
     
     // There might be some standards for making struct-like classes like these.
     // also this might be visible to non-test classes which it shouldnt be for now
     public class ProdSet{
         public Product2 prod;
+        public Product2 prod2;
         public PriceBookEntry stdpbe;
+        public PriceBookEntry stdpbe2;
         public PriceBookEntry pbe;
+        public PriceBookEntry pbe2;
         public PriceBook2 pb;
     }
     
     public static ProdSet generateProdSet() {
         ProdSet prodSet = new ProdSet();
         Product2 prod = new Product2(Name = 'Test Water Bottle', IsActive = true);
-        insert prod;
+        Product2 prod2 = new Product2(Name = 'Test Water Bottle Two', IsActive = true);
+        insert new List<Product2>{prod, prod2};
         prodSet.prod = prod;
+        prodSet.prod2 = prod2;
         Id stdPbId = Test.getStandardPricebookId();
     
         PricebookEntry stdPbe = new PricebookEntry(
@@ -85,8 +150,15 @@ public with sharing class TestDataFactory {
             UnitPrice = 3, 
             IsActive = true
         );
-        insert stdPbe;
+        PricebookEntry stdPbe2 = new PricebookEntry(
+            Pricebook2Id = stdPbId, 
+            Product2Id = prod2.Id, 
+            UnitPrice = 6, 
+            IsActive = true
+        );
+        insert new List<PriceBookEntry>{stdPbe, stdPbe2};
 		prodSet.stdpbe = stdPbe;
+        prodSet.stdpbe2 = stdPbe2;
         
         Pricebook2 pb = new Pricebook2(
             Name = 'Special Discount PB',
@@ -97,10 +169,15 @@ public with sharing class TestDataFactory {
 
         PricebookEntry pbe = new PricebookEntry(
             Pricebook2Id = pb.Id, Product2Id = prod.Id, 
-            UnitPrice = 3, IsActive = true
+            UnitPrice = 4, IsActive = true
         );
-        insert pbe;
+        PricebookEntry pbe2 = new PricebookEntry(
+            Pricebook2Id = pb.Id, Product2Id = prod2.Id, 
+            UnitPrice = 8, IsActive = true
+        );
+        insert new List<PriceBookEntry>{pbe, pbe2};
         prodSet.pbe = pbe;
+        prodSet.pbe2 = pbe2;
         
 		return prodSet;
     }

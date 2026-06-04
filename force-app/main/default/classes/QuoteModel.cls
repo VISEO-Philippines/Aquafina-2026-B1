@@ -27,9 +27,21 @@ public with sharing class QuoteModel {
         // This can be empty if displaying dashboard for a 
         // quote without line items yet
         return [
-            SELECT Id, Product2.Name, Quantity, Subtotal, Discount, TotalPrice
+            SELECT Id, Product2.Name, Product2Id , Quantity, Subtotal, Discount, TotalPrice, QuoteId
             FROM QuoteLineItem
             WHERE QuoteId = :quoteId
+        ];
+    }
+
+
+    // CHORE: Remove getQuoteLineItems(Id quoteId) and replace with this instead. OR not just overload the method hehe
+    public static List<QuoteLineItem> getQuoteLineItems(List<Id> quoteIds) {
+        if (quoteIds.isEmpty())
+            return new List<QuoteLineItem>();
+        return [
+            SELECT Id, Product2.Name, Product2Id, PriceBookEntryId, Quantity, Subtotal, Discount, TotalPrice, QuoteId
+            FROM QuoteLineItem
+            WHERE QuoteId IN :quoteIds
         ];
     }
 }
