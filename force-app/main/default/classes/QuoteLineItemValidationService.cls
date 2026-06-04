@@ -14,13 +14,21 @@ public inherited sharing class QuoteLineItemValidationService {
 
         Set<Id> quoteIds = collectQuoteIds(newQLIs);
         Set<Id> incomingQLIIds = collectQuoteLineItemIds(newQLIs);
-        Set<Id> productIds = collectProductIds(newQLIs);
+        Set<Id> pricebookEntryIds = collectPricebookEntryIds(newQLIs);
+
+        List<PricebookEntry> pricebookEntries =
+            QuoteLineItemSelector.getPricebookEntriesByIds(
+                pricebookEntryIds
+            );
+
+        Map<Id, PricebookEntry> pricebookEntriesById =
+            new Map<Id, PricebookEntry>(pricebookEntries);
+
+        Map<Id, String> productNamesById =
+            buildProductNamesByIdFromPricebookEntries(pricebookEntries);
 
         List<QuoteLineItem> existingQLIs =
             QuoteLineItemSelector.getByQuoteIds(quoteIds);
-
-        List<Product2> products =
-            QuoteLineItemSelector.getProductsByIds(productIds);
 
         Map<Id, Map<Id, String>> existingProductNamesByQuoteId =
             buildExistingProductNamesByQuoteId(
@@ -28,16 +36,17 @@ public inherited sharing class QuoteLineItemValidationService {
                 incomingQLIIds
             );
 
-        Map<Id, String> productNamesById =
-            buildProductNamesById(products);
-
         addErrorsForProductsAlreadyOnQuote(
             newQLIs,
-            existingProductNamesByQuoteId
+            existingProductNamesByQuoteId,
+            pricebookEntriesById
         );
 
         Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct =
-            groupQuoteLineItemsByQuoteAndProduct(newQLIs);
+            groupQuoteLineItemsByQuoteAndProduct(
+                newQLIs,
+                pricebookEntriesById
+            );
 
         addErrorsForDuplicateProductsInTransaction(
             qlisByQuoteAndProduct,
@@ -73,18 +82,57 @@ public inherited sharing class QuoteLineItemValidationService {
         return quoteLineItemIds;
     }
 
-    private static Set<Id> collectProductIds(
+    private static Set<Id> collectPricebookEntryIds(
         List<QuoteLineItem> quoteLineItems
     ) {
-        Set<Id> productIds = new Set<Id>();
+        Set<Id> pricebookEntryIds = new Set<Id>();
 
         for (QuoteLineItem qli : quoteLineItems) {
-            if (qli.Product2Id != null) {
-                productIds.add(qli.Product2Id);
+            if (qli.PricebookEntryId != null) {
+                pricebookEntryIds.add(qli.PricebookEntryId);
             }
         }
 
-        return productIds;
+        return pricebookEntryIds;
+    }
+
+    private static Id getProductId(
+        QuoteLineItem qli,
+        Map<Id, PricebookEntry> pricebookEntriesById
+    ) {
+        if (qli.Product2Id != null) {
+            return qli.Product2Id;
+        }
+
+        if (
+            qli.PricebookEntryId == null ||
+            !pricebookEntriesById.containsKey(qli.PricebookEntryId)
+        ) {
+            return null;
+        }
+
+        return pricebookEntriesById
+            .get(qli.PricebookEntryId)
+            .Product2Id;
+    }
+
+    private static Map<Id, String> buildProductNamesByIdFromPricebookEntries(
+        List<PricebookEntry> pricebookEntries
+    ) {
+        Map<Id, String> productNamesById = new Map<Id, String>();
+
+        for (PricebookEntry pricebookEntry : pricebookEntries) {
+            if (pricebookEntry.Product2Id == null) {
+                continue;
+            }
+
+            productNamesById.put(
+                pricebookEntry.Product2Id,
+                pricebookEntry.Product2.Name
+            );
+        }
+
+        return productNamesById;
     }
 
     private static Map<Id, Map<Id, String>> buildExistingProductNamesByQuoteId(
@@ -126,28 +174,15 @@ public inherited sharing class QuoteLineItemValidationService {
         return existingProductNamesByQuoteId;
     }
 
-    private static Map<Id, String> buildProductNamesById(
-        List<Product2> products
-    ) {
-        Map<Id, String> productNamesById = new Map<Id, String>();
-
-        for (Product2 productRecord : products) {
-            productNamesById.put(
-                productRecord.Id,
-                productRecord.Name
-            );
-        }
-
-        return productNamesById;
-    }
-
     private static void addErrorsForProductsAlreadyOnQuote(
         List<QuoteLineItem> newQLIs,
-        Map<Id, Map<Id, String>> existingProductNamesByQuoteId
+        Map<Id, Map<Id, String>> existingProductNamesByQuoteId,
+        Map<Id, PricebookEntry> pricebookEntriesById
     ) {
         for (QuoteLineItem qli : newQLIs) {
+            Id productId = getProductId(qli, pricebookEntriesById);
 
-            if (qli.QuoteId == null || qli.Product2Id == null) {
+            if (qli.QuoteId == null || productId == null) {
                 continue;
             }
 
@@ -156,11 +191,11 @@ public inherited sharing class QuoteLineItemValidationService {
 
             Boolean productAlreadyExistsOnQuote =
                 existingProductNames != null &&
-                existingProductNames.containsKey(qli.Product2Id);
+                existingProductNames.containsKey(productId);
 
             if (productAlreadyExistsOnQuote) {
                 String productName =
-                    existingProductNames.get(qli.Product2Id);
+                    existingProductNames.get(productId);
 
                 qli.addError(
                     formatErrorMessage(ERROR_EXISTING, productName)
@@ -171,15 +206,17 @@ public inherited sharing class QuoteLineItemValidationService {
 
     private static Map<Id, Map<Id, List<QuoteLineItem>>>
         groupQuoteLineItemsByQuoteAndProduct(
-            List<QuoteLineItem> quoteLineItems
+            List<QuoteLineItem> quoteLineItems,
+            Map<Id, PricebookEntry> pricebookEntriesById
         ) {
 
         Map<Id, Map<Id, List<QuoteLineItem>>> qlisByQuoteAndProduct =
             new Map<Id, Map<Id, List<QuoteLineItem>>>();
 
         for (QuoteLineItem qli : quoteLineItems) {
+            Id productId = getProductId(qli, pricebookEntriesById);
 
-            if (qli.QuoteId == null || qli.Product2Id == null) {
+            if (qli.QuoteId == null || productId == null) {
                 continue;
             }
 
@@ -193,15 +230,15 @@ public inherited sharing class QuoteLineItemValidationService {
             Map<Id, List<QuoteLineItem>> qlisByProduct =
                 qlisByQuoteAndProduct.get(qli.QuoteId);
 
-            if (!qlisByProduct.containsKey(qli.Product2Id)) {
+            if (!qlisByProduct.containsKey(productId)) {
                 qlisByProduct.put(
-                    qli.Product2Id,
+                    productId,
                     new List<QuoteLineItem>()
                 );
             }
 
             qlisByProduct
-                .get(qli.Product2Id)
+                .get(productId)
                 .add(qli);
         }
 
@@ -224,7 +261,8 @@ public inherited sharing class QuoteLineItemValidationService {
                     continue;
                 }
 
-                String productName = productNamesById.get(productId);
+                String productName =
+                    productNamesById.get(productId);
 
                 for (QuoteLineItem qli : qliGroup) {
                     qli.addError(
@@ -239,10 +277,13 @@ public inherited sharing class QuoteLineItemValidationService {
         String messageTemplate,
         String productName
     ) {
+        String displayName = String.isBlank(productName)
+            ? 'selected product'
+            : productName;
+
         return String.format(
             messageTemplate,
-            new List<String>{ productName }
+            new List<String>{ displayName }
         );
     }
 }
- 
