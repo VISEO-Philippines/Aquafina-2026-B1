@@ -136,6 +136,7 @@ private class QuoteLineItemValidationTest {
                 Assert.areEqual(false, results[i].isSuccess(), 'Row ' + i + ' should have failed because it is a duplicate.');
                 Assert.areEqual(1, results[i].getErrors().size(), 'Row ' + i + ' should have exactly 1 error attached.');
                 String actualErrorMessage = results[i].getErrors()[0].getMessage();
+                Assert.areEqual('QuoteLineItem cannot be added as another QuoteLineItem with the same Product in the same Quote is repeated in this batch.', actualErrorMessage, 'Got a different error added to a QuoteLineItem that was rejected for having a non-unique Product2Id associated to it in a batch transaction.');     
             }
         }
     }
