@@ -1,4 +1,8 @@
 public with sharing class QuoteLineItemValidationService {
+    private static final String DUPLICATE_DATABASE_ERROR = 'This QuoteLineItem cannot be added because another QuoteLineItem with the same Product already exists in this Quote.';
+    private static final String DUPLICATE_BATCH_ERROR = 'QuoteLineItem cannot be added as another QuoteLineItem with the same Product in the same Quote is repeated in this batch.';
+
+
     public static void enforceProductNotRepeated(List<QuoteLineItem> qlis) {
         Logger.info('QuoteLineItemValidation-enforceProductNotRepeated started');
 
@@ -17,7 +21,7 @@ public with sharing class QuoteLineItemValidationService {
     private static void retrieveIdsFromTrigger(List<QuoteLineItem> qlis, Set<Id> qliQuoteIds, Set<Id> qliPbeIds) {
         // Setting up for retrieval of Quotes from Database to to query QuoteLineItems AND Pricebook entries, we need to query the latter since Product2Id is not populated before insert
         for (QuoteLineItem qli: qlis) {
-            qliQuoteIds.add(qli.QuoteId);
+            qliQuoteIds.add(qli.QuoteIgit d);
             qliPbeIds.add(qli.PricebookEntryId);
         }
     }
@@ -50,10 +54,11 @@ public with sharing class QuoteLineItemValidationService {
 
         for (QuoteLineItem qli : existingQLIs) {
             if (qli.QuoteId == null || qli.Product2Id == null) {
-                Logger.warn('A QuoteLineItem with a null QuoteId or Product2Id exists in the database, this offending record has not been taken into account on enforcing no products are repeated.');
+                // This should not be happening in normal transactions so logging this even if inside the loop should be ok?
+                Logger.warn('A QuoteLineItem with a null QuoteId or Product2Id exists in the database, this offending record has not been taken into account on enforcing no products are repeated. Offending QuoteLineItem Id: ' + qli.Id);
                 continue;
             } else if (triggeredQLIIds.contains(qli.Id)) {
-                Logger.warn('EXEMPTED A QLI SINCE IT IS AN UPDATE: ' + qli.Id + ' ' + qli.QuoteId + '-' + qli.Product2Id);
+                // Logger.warn('EXEMPTED A QLI SINCE IT IS AN UPDATE: ' + qli.Id + ' ' + qli.QuoteId + '-' + qli.Product2Id);
                 continue;
             } else {
                 existingQuoteProductKeys.add(qli.QuoteId + '-' + qli.Product2Id);
@@ -74,17 +79,15 @@ public with sharing class QuoteLineItemValidationService {
 
             // Does the key exist in the database?
             if (existingQuoteProductKeys.contains(quoteProductKey)) {
-                qli.addError('This QuoteLineItem cannot be added as another QuoteLineItem record with the same Product in the same Quote already exists.');
-                Logger.warn('QuoteLineItem cannot be added as another QuoteLineItem record with the same Product in the same Quote already exists.');
+                qli.addError(DUPLICATE_DATABASE_ERROR);
             }
             // Does the key exist within the batch?
             else if (seenQLIs.containsKey(quoteProductKey)) {
-                qli.addError('This QuoteLineItem cannot be added as another QuoteLineItem with the same Product in the same Quote is repeated in this batch.');
-                Logger.warn('QuoteLineItem cannot be added as another QuoteLineItem with the same Product in the same Quote is repeated in this batch.');
+                qli.addError(DUPLICATE_BATCH_ERROR);
 
                 // Have we added an error to the first seen matching key yet?
                 if (!qliHits.contains(quoteProductKey)) {
-                    seenQLIs.get(quoteProductKey).addError('This QuoteLineItem cannot be added as another QuoteLineItem record with the same Product in the same Quote is repeated in this batch.');
+                    seenQLIs.get(quoteProductKey).addError(DUPLICATE_BATCH_ERROR);
 
                     qliHits.add(quoteProductKey);
                 }

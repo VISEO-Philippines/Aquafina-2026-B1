@@ -34,19 +34,13 @@ private class QuoteLineItemValidationTest {
     }
 
     @isTest
-    static void productNotRepeatedInsertOneAcceptedQLItest() {
-        // User sRepFrance1 = [SELECT Id, IsActive FROM User WHERE Username = 'sRepFrance1@test.com'];
+    static void productNotRepeatedInsertShouldAllowUniqueProductTest() {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            // Get OppA QuoteLineItems for copying
-            Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
             List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
-            List<Id> pbeIds = new List<Id>();
-            for (QuoteLineItem qli_i : qlistemp) {
-                pbeIds.add(qli_i.PricebookEntryId);
-            }
+            List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
             Opportunity oppB = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp2'];
@@ -78,18 +72,13 @@ private class QuoteLineItemValidationTest {
     }
 
     @isTest
-    static void productNotRepeatedInsertOneRejectedQLItest() {
+    static void productNotRepeatedInsertShouldRejectDuplicateProductTest() {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            // Get OppA QuoteLineItems for copying
-            Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
             List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
-            List<Id> pbeIds = new List<Id>();
-            for (QuoteLineItem qli_i : qlistemp) {
-                pbeIds.add(qli_i.PricebookEntryId);
-            }
+            List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
             Opportunity oppB = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp2'];
@@ -119,14 +108,9 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            // Get OppA QuoteLineItems for copying
-            Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
             List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
-            List<Id> pbeIds = new List<Id>();
-            for (QuoteLineItem qli_i : qlistemp) {
-                pbeIds.add(qli_i.PricebookEntryId);
-            }
+            List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
             Opportunity oppB = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp2'];
@@ -162,14 +146,9 @@ private class QuoteLineItemValidationTest {
         User sRepFrance1 = TestDataFactory.commonSrep;
 
         System.runAs(sRepFrance1) {
-            // Get OppA QuoteLineItems for copying
-            Opportunity oppA = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp1'];
             Quote qt_c = [SELECT Id, PriceBook2Id FROM Quote WHERE Name = 'OppAQuote1'];
             List<QuoteLineItem> qlistemp = [SELECT Id, PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :qt_c.Id];
-            List<Id> pbeIds = new List<Id>();
-            for (QuoteLineItem qli_i : qlistemp) {
-                pbeIds.add(qli_i.PricebookEntryId);
-            }
+            List<Id> pbeIds = getPbeIdsFromQuote(qlistemp);
             
             // Get OppB
             Opportunity oppB = [SELECT Id FROM Opportunity WHERE Name = 'TestOpp2'];
@@ -200,5 +179,15 @@ private class QuoteLineItemValidationTest {
             Assert.isTrue(results[0].isSuccess() && results[1].isSuccess(), 'Updated one QuoteLineItem to another Product, Inserted another QuoteLineItem to old Product, both must be accepted.');
 
         }
+    }
+
+    private static List<Id> getPbeIdsFromQuote(List<QuoteLineItem> qlistemp) {
+        // return new List<Id>(new Map<Id, QuoteLineItem>([SELECT PriceBookEntryId FROM QuoteLineItem WHERE QuoteId = :quoteId]).keySet())
+        List<Id> pbeIds = new List<Id>();
+        for (QuoteLineItem qli : qlistemp) {
+            pbeIds.add(qli.PricebookEntryId);
+        }
+
+        return pbeIds;
     }
 }
