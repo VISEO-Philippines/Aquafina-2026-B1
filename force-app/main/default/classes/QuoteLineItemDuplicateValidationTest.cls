@@ -16,43 +16,43 @@ private class QuoteLineItemDuplicateValidationTest {
          * the exact trigger scenario being validated.
          */
         Account accountRecord =
-            QuoteLineItemTestDataFactory.createAccount();
+            TestDataFactory.createAccount();
 
         Opportunity opportunityRecord =
-            QuoteLineItemTestDataFactory.createOpportunity(accountRecord.Id);
+            TestDataFactory.createOpportunity(accountRecord.Id);
 
         Quote quoteOne =
-            QuoteLineItemTestDataFactory.createQuote(opportunityRecord.Id);
+            TestDataFactory.createQuote(opportunityRecord.Id);
 
         quoteOne.Name = QUOTE_ONE_NAME;
 
         Quote quoteTwo =
-            QuoteLineItemTestDataFactory.createQuote(opportunityRecord.Id);
+            TestDataFactory.createQuote(opportunityRecord.Id);
 
         quoteTwo.Name = QUOTE_TWO_NAME;
 
         update new List<Quote>{ quoteOne, quoteTwo };
 
         Product2 laptop =
-            QuoteLineItemTestDataFactory.createProduct(LAPTOP_PRODUCT_NAME);
+            TestDataFactory.createProductWithExactName(LAPTOP_PRODUCT_NAME);
 
         Product2 mouse =
-            QuoteLineItemTestDataFactory.createProduct(MOUSE_PRODUCT_NAME);
+            TestDataFactory.createProductWithExactName(MOUSE_PRODUCT_NAME);
 
         Product2 keyboard =
-            QuoteLineItemTestDataFactory.createProduct(KEYBOARD_PRODUCT_NAME);
+            TestDataFactory.createProductWithExactName(KEYBOARD_PRODUCT_NAME);
 
-        QuoteLineItemTestDataFactory.createPricebookEntry(
+        TestDataFactory.createPricebookEntry(
             laptop.Id,
             100
         );
 
-        QuoteLineItemTestDataFactory.createPricebookEntry(
+        TestDataFactory.createPricebookEntry(
             mouse.Id,
             50
         );
 
-        QuoteLineItemTestDataFactory.createPricebookEntry(
+        TestDataFactory.createPricebookEntry(
             keyboard.Id,
             75
         );
@@ -60,243 +60,263 @@ private class QuoteLineItemDuplicateValidationTest {
 
     @IsTest
     static void shouldAllowUniqueProductsOnSameQuote() {
-        Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
+        User salesRepUser = TestDataFactory.createSalesRepUser();
 
-        PricebookEntry laptopPricebookEntry =
-            getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+        System.runAs(salesRepUser) {
+            Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
 
-        PricebookEntry mousePricebookEntry =
-            getPricebookEntryByProductName(MOUSE_PRODUCT_NAME);
+            PricebookEntry laptopPricebookEntry =
+                getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
 
-        List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
-            ),
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                mousePricebookEntry.Id,
-                50,
-                1
-            )
-        };
+            PricebookEntry mousePricebookEntry =
+                getPricebookEntryByProductName(MOUSE_PRODUCT_NAME);
 
-        Test.startTest();
+            List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                ),
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    mousePricebookEntry.Id,
+                    50,
+                    1
+                )
+            };
 
-        Database.SaveResult[] results =
-            Database.insert(quoteLineItems, false);
+            Test.startTest();
 
-        Test.stopTest();
+            Database.SaveResult[] results =
+                Database.insert(quoteLineItems, false);
 
-        Assert.isTrue(
-            results[0].isSuccess(),
-            'Laptop QLI should be inserted successfully.'
-        );
+            Test.stopTest();
 
-        Assert.isTrue(
-            results[1].isSuccess(),
-            'Mouse QLI should be inserted successfully.'
-        );
+            Assert.isTrue(
+                results[0].isSuccess(),
+                'Laptop QLI should be inserted successfully.'
+            );
+
+            Assert.isTrue(
+                results[1].isSuccess(),
+                'Mouse QLI should be inserted successfully.'
+            );
+        }
     }
 
     @IsTest
     static void shouldBlockDuplicateProductAlreadyOnQuote() {
-        Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
+        User salesRepUser = TestDataFactory.createSalesRepUser();
 
-        PricebookEntry laptopPricebookEntry =
-            getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+        System.runAs(salesRepUser) {
+            Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
 
-        QuoteLineItem existingQuoteLineItem =
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
+            PricebookEntry laptopPricebookEntry =
+                getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+
+            QuoteLineItem existingQuoteLineItem =
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                );
+
+            insert existingQuoteLineItem;
+
+            QuoteLineItem duplicateQuoteLineItem =
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    2
+                );
+
+            Test.startTest();
+
+            Database.SaveResult result =
+                Database.insert(duplicateQuoteLineItem, false);
+
+            Test.stopTest();
+
+            Assert.isFalse(
+                result.isSuccess(),
+                'Duplicate Product should be blocked on the same Quote.'
             );
 
-        insert existingQuoteLineItem;
-
-        QuoteLineItem duplicateQuoteLineItem =
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                2
+            Assert.isTrue(
+                result.getErrors()[0]
+                    .getMessage()
+                    .contains(LAPTOP_PRODUCT_NAME),
+                'Error message should include the duplicate Product name.'
             );
-
-        Test.startTest();
-
-        Database.SaveResult result =
-            Database.insert(duplicateQuoteLineItem, false);
-
-        Test.stopTest();
-
-        Assert.isFalse(
-            result.isSuccess(),
-            'Duplicate Product should be blocked on the same Quote.'
-        );
-
-        Assert.isTrue(
-            result.getErrors()[0]
-                .getMessage()
-                .contains(LAPTOP_PRODUCT_NAME),
-            'Error message should include the duplicate Product name.'
-        );
+        }
     }
 
     @IsTest
     static void shouldOnlyFailDuplicateRecordsDuringBulkInsert() {
-        Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
+        User salesRepUser = TestDataFactory.createSalesRepUser();
 
-        PricebookEntry laptopPricebookEntry =
-            getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+        System.runAs(salesRepUser) {
+            Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
 
-        PricebookEntry mousePricebookEntry =
-            getPricebookEntryByProductName(MOUSE_PRODUCT_NAME);
+            PricebookEntry laptopPricebookEntry =
+                getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
 
-        List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
-            ),
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                2
-            ),
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                mousePricebookEntry.Id,
-                50,
-                1
-            )
-        };
+            PricebookEntry mousePricebookEntry =
+                getPricebookEntryByProductName(MOUSE_PRODUCT_NAME);
 
-        Test.startTest();
+            List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                ),
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    2
+                ),
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    mousePricebookEntry.Id,
+                    50,
+                    1
+                )
+            };
 
-        /*
-         * Partial success lets us verify row-level behavior:
-         * duplicate rows fail while valid rows in the same transaction succeed.
-         */
-        Database.SaveResult[] results =
-            Database.insert(quoteLineItems, false);
+            Test.startTest();
 
-        Test.stopTest();
+            /*
+             * Partial success lets us verify row-level behavior:
+             * duplicate rows fail while valid rows in the same transaction succeed.
+             */
+            Database.SaveResult[] results =
+                Database.insert(quoteLineItems, false);
 
-        Assert.areEqual(
-            3,
-            results.size(),
-            'Bulk insert should return one SaveResult per QLI.'
-        );
+            Test.stopTest();
 
-        Assert.isFalse(
-            results[0].isSuccess(),
-            'First Laptop QLI should fail because Laptop appears more than once in the same transaction.'
-        );
+            Assert.areEqual(
+                3,
+                results.size(),
+                'Bulk insert should return one SaveResult per QLI.'
+            );
 
-        Assert.isFalse(
-            results[1].isSuccess(),
-            'Second Laptop QLI should fail because Laptop appears more than once in the same transaction.'
-        );
+            Assert.isFalse(
+                results[0].isSuccess(),
+                'First Laptop QLI should fail because Laptop appears more than once in the same transaction.'
+            );
 
-        Assert.isTrue(
-            results[2].isSuccess(),
-            'Mouse QLI should succeed because it is not a duplicate.'
-        );
+            Assert.isFalse(
+                results[1].isSuccess(),
+                'Second Laptop QLI should fail because Laptop appears more than once in the same transaction.'
+            );
 
-        Assert.isTrue(
-            results[0]
-                .getErrors()[0]
-                .getMessage()
-                .contains(LAPTOP_PRODUCT_NAME),
-            'First duplicate error should include the duplicate Product name.'
-        );
+            Assert.isTrue(
+                results[2].isSuccess(),
+                'Mouse QLI should succeed because it is not a duplicate.'
+            );
 
-        Assert.isTrue(
-            results[1]
-                .getErrors()[0]
-                .getMessage()
-                .contains(LAPTOP_PRODUCT_NAME),
-            'Second duplicate error should include the duplicate Product name.'
-        );
+            Assert.isTrue(
+                results[0]
+                    .getErrors()[0]
+                    .getMessage()
+                    .contains(LAPTOP_PRODUCT_NAME),
+                'First duplicate error should include the duplicate Product name.'
+            );
+
+            Assert.isTrue(
+                results[1]
+                    .getErrors()[0]
+                    .getMessage()
+                    .contains(LAPTOP_PRODUCT_NAME),
+                'Second duplicate error should include the duplicate Product name.'
+            );
+        }
     }
 
     @IsTest
     static void shouldValidateDuplicatesPerQuoteOnly() {
-        Quote quoteOne = getQuoteByName(QUOTE_ONE_NAME);
-        Quote quoteTwo = getQuoteByName(QUOTE_TWO_NAME);
+        User salesRepUser = TestDataFactory.createSalesRepUser();
 
-        PricebookEntry laptopPricebookEntry =
-            getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+        System.runAs(salesRepUser) {
+            Quote quoteOne = getQuoteByName(QUOTE_ONE_NAME);
+            Quote quoteTwo = getQuoteByName(QUOTE_TWO_NAME);
 
-        List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteOne.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
-            ),
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteTwo.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
-            )
-        };
+            PricebookEntry laptopPricebookEntry =
+                getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
 
-        Test.startTest();
+            List<QuoteLineItem> quoteLineItems = new List<QuoteLineItem>{
+                TestDataFactory.buildQuoteLineItem(
+                    quoteOne.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                ),
+                TestDataFactory.buildQuoteLineItem(
+                    quoteTwo.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                )
+            };
 
-        Database.SaveResult[] results =
-            Database.insert(quoteLineItems, false);
+            Test.startTest();
 
-        Test.stopTest();
+            Database.SaveResult[] results =
+                Database.insert(quoteLineItems, false);
 
-        Assert.isTrue(
-            results[0].isSuccess(),
-            'Laptop should be allowed on Quote One.'
-        );
+            Test.stopTest();
 
-        Assert.isTrue(
-            results[1].isSuccess(),
-            'Laptop should also be allowed on Quote Two because validation is scoped per Quote.'
-        );
+            Assert.isTrue(
+                results[0].isSuccess(),
+                'Laptop should be allowed on Quote One.'
+            );
+
+            Assert.isTrue(
+                results[1].isSuccess(),
+                'Laptop should also be allowed on Quote Two because validation is scoped per Quote.'
+            );
+        }
     }
 
     @IsTest
     static void shouldAllowQuantityUpdateWhenProductDoesNotChange() {
-        Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
+        User salesRepUser = TestDataFactory.createSalesRepUser();
 
-        PricebookEntry laptopPricebookEntry =
-            getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+        System.runAs(salesRepUser) {
+            Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
 
-        QuoteLineItem laptopQuoteLineItem =
-            QuoteLineItemTestDataFactory.buildQuoteLineItem(
-                quoteRecord.Id,
-                laptopPricebookEntry.Id,
-                100,
-                1
+            PricebookEntry laptopPricebookEntry =
+                getPricebookEntryByProductName(LAPTOP_PRODUCT_NAME);
+
+            QuoteLineItem laptopQuoteLineItem =
+                TestDataFactory.buildQuoteLineItem(
+                    quoteRecord.Id,
+                    laptopPricebookEntry.Id,
+                    100,
+                    1
+                );
+
+            insert laptopQuoteLineItem;
+
+            laptopQuoteLineItem.Quantity = 5;
+
+            Test.startTest();
+
+            Database.SaveResult result =
+                Database.update(laptopQuoteLineItem, false);
+
+            Test.stopTest();
+
+            Assert.isTrue(
+                result.isSuccess(),
+                'Quantity update should succeed because the Product did not change.'
             );
-
-        insert laptopQuoteLineItem;
-
-        laptopQuoteLineItem.Quantity = 5;
-
-        Test.startTest();
-
-        Database.SaveResult result =
-            Database.update(laptopQuoteLineItem, false);
-
-        Test.stopTest();
-
-        Assert.isTrue(
-            result.isSuccess(),
-            'Quantity update should succeed because the Product did not change.'
-        );
+        }
     }
 
     @IsTest
