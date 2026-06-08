@@ -133,7 +133,10 @@ private class DuplicateProductServiceTest {
     // ---------------------------------------------------------------------------
     @IsTest
     static void checkDuplicateProducts_doesNothingForEmptyOrNullList() {
-        DuplicateProductService svc = new DuplicateProductService();
+        DuplicateProductService svc = new DuplicateProductService(
+            new QuoteLineItemSelector(),
+            new Product2Selector()
+        );
 
         Test.startTest();
         svc.checkDuplicateProducts(new List<QuoteLineItem>());
@@ -141,6 +144,38 @@ private class DuplicateProductServiceTest {
         Test.stopTest();
 
         Assert.isTrue(true, 'No exception should be thrown for empty or null input');
+    }
+
+    // ---------------------------------------------------------------------------
+    // checkDuplicateProducts (update overload) — empty and null inputs must
+    // return immediately without throwing an exception.
+    // ---------------------------------------------------------------------------
+    @IsTest
+    static void checkDuplicateProducts_updateOverload_doesNothingForEmptyOrNullList() {
+        DuplicateProductService svc = new DuplicateProductService(
+            new QuoteLineItemSelector(),
+            new Product2Selector()
+        );
+
+        Test.startTest();
+        svc.checkDuplicateProducts(new List<QuoteLineItem>(), new Map<Id, QuoteLineItem>());
+        svc.checkDuplicateProducts(null, new Map<Id, QuoteLineItem>());
+        Test.stopTest();
+
+        Assert.isTrue(true, 'No exception should be thrown for empty or null list in update overload');
+    }
+
+    // ---------------------------------------------------------------------------
+    // formatDuplicateError — null product name must return the default message;
+    // a non-null name must return the named-product message.
+    // ---------------------------------------------------------------------------
+    @IsTest
+    static void formatDuplicateError_returnsDefaultMessageWhenProductNameIsNull() {
+        Assert.areEqual(
+            'Product already exists in this quote',
+            DuplicateProductService.formatDuplicateError(null),
+            'Expected default message when product name is null'
+        );
     }
 
     // ---------------------------------------------------------------------------

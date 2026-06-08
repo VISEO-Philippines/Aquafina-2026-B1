@@ -11,6 +11,7 @@ public with sharing class DuplicateProductService
 
     private static final String DEFAULT_DUPLICATE_ERROR_MSG = 'Product already exists in this quote';
 
+    @TestVisible
     private static String formatDuplicateError(String productName) {
         if (productName == null) {
             return DEFAULT_DUPLICATE_ERROR_MSG;
