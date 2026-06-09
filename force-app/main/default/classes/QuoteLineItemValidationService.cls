@@ -52,6 +52,8 @@ public inherited sharing class QuoteLineItemValidationService {
             qlisByQuoteAndProduct,
             productNamesById
         );
+
+        Logger.saveLog();
     }
 
     private static Set<Id> collectQuoteIds(
@@ -197,6 +199,13 @@ public inherited sharing class QuoteLineItemValidationService {
                 String productName =
                     existingProductNames.get(productId);
 
+                Logger.warn(
+                    'Duplicate Product already exists on this Quote. ' +
+                    'QuoteId=' + qli.QuoteId +
+                    ', ProductId=' + productId +
+                    ', ProductName=' + productName
+                );
+
                 qli.addError(
                     formatErrorMessage(ERROR_EXISTING, productName)
                 );
@@ -263,6 +272,13 @@ public inherited sharing class QuoteLineItemValidationService {
 
                 String productName =
                     productNamesById.get(productId);
+
+                Logger.warn(
+                    'Duplicate Product found within the same Quote Line Item transaction. ' +
+                    'ProductId=' + productId +
+                    ', ProductName=' + productName +
+                    ', DuplicateCount=' + qliGroup.size()
+                );
 
                 for (QuoteLineItem qli : qliGroup) {
                     qli.addError(
