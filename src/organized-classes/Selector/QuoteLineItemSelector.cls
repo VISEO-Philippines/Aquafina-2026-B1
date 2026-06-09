@@ -39,4 +39,4 @@ public inherited sharing class QuoteLineItemSelector {
         ];
     }
 }
- 
+  

@@ -15,6 +15,7 @@ public class QuoteLineItemTriggerHandler extends TriggerHandler {
             (List<QuoteLineItem>) Trigger.new,
             (Map<Id,QuoteLineItem>) Trigger.oldMap
         );
+        
         QuoteLineItemValidationService.validateDuplicateProducts(qlisWithProductChange);
     }
 
@@ -36,4 +37,5 @@ public class QuoteLineItemTriggerHandler extends TriggerHandler {
 
         return qlisWithProductChange;
     }
+
 }

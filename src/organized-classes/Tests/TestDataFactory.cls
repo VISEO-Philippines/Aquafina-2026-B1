@@ -6,15 +6,13 @@ public with sharing class TestDataFactory {
             SELECT Id
             FROM Profile
             WHERE Name = 'Standard User'
-            LIMIT 1
-        ];
+            LIMIT 1];
 
         List<UserRole> roles = [
             SELECT Id
             FROM UserRole
             WHERE Name = 'SR_France_South'
-            LIMIT 1
-        ];
+            LIMIT 1];
 
         String unique = String.valueOf(System.currentTimeMillis());
 

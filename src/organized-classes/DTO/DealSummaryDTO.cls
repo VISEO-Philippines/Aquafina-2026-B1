@@ -23,7 +23,7 @@ public class DealSummaryDTO {
      */
     @AuraEnabled public Map<String, String> readiness;
 
-
+    
     
     /*
      * Constructor initializes core deal summary values.
