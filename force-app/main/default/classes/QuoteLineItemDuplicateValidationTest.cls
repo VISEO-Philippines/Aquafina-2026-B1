@@ -8,59 +8,68 @@ private class QuoteLineItemDuplicateValidationTest {
     private static final String MOUSE_PRODUCT_NAME = 'Mouse';
     private static final String KEYBOARD_PRODUCT_NAME = 'Keyboard';
 
+    private static Id salesRepUserId;
+
     @TestSetup
     static void setupData() {
-        /*
-         * Seed only shared parent/reference data here.
-         * QuoteLineItem DML stays inside each test method so each test controls
-         * the exact trigger scenario being validated.
-         */
-        Account accountRecord =
-            TestDataFactory.createAccount();
+        // Create a common sales rep user for all tests to run as
+        User salesRepUser = TestDataFactory.createSalesRepUser();
+        salesRepUserId = salesRepUser.Id;
 
-        Opportunity opportunityRecord =
-            TestDataFactory.createOpportunity(accountRecord.Id);
 
-        Quote quoteOne =
-            TestDataFactory.createQuote(opportunityRecord.Id);
+        System.runAs(salesRepUser) {
+            /*
+             * Seed only shared parent/reference data here.
+             * QuoteLineItem DML stays inside each test method so each test controls
+             * the exact trigger scenario being validated.
+             */
+            Account accountRecord =
+                TestDataFactory.createAccount();
 
-        quoteOne.Name = QUOTE_ONE_NAME;
+            Opportunity opportunityRecord =
+                TestDataFactory.createOpportunity(accountRecord.Id);
 
-        Quote quoteTwo =
-            TestDataFactory.createQuote(opportunityRecord.Id);
+            Quote quoteOne =
+                TestDataFactory.createQuote(opportunityRecord.Id);
 
-        quoteTwo.Name = QUOTE_TWO_NAME;
+            quoteOne.Name = QUOTE_ONE_NAME;
 
-        update new List<Quote>{ quoteOne, quoteTwo };
+            Quote quoteTwo =
+                TestDataFactory.createQuote(opportunityRecord.Id);
 
-        Product2 laptop =
-            TestDataFactory.createProductWithExactName(LAPTOP_PRODUCT_NAME);
+            quoteTwo.Name = QUOTE_TWO_NAME;
 
-        Product2 mouse =
-            TestDataFactory.createProductWithExactName(MOUSE_PRODUCT_NAME);
+            update new List<Quote>{ quoteOne, quoteTwo };
 
-        Product2 keyboard =
-            TestDataFactory.createProductWithExactName(KEYBOARD_PRODUCT_NAME);
+            Product2 laptop =
+                TestDataFactory.createProductWithExactName(LAPTOP_PRODUCT_NAME);
 
-        TestDataFactory.createPricebookEntry(
-            laptop.Id,
-            100
-        );
+            Product2 mouse =
+                TestDataFactory.createProductWithExactName(MOUSE_PRODUCT_NAME);
 
-        TestDataFactory.createPricebookEntry(
-            mouse.Id,
-            50
-        );
+            Product2 keyboard =
+                TestDataFactory.createProductWithExactName(KEYBOARD_PRODUCT_NAME);
 
-        TestDataFactory.createPricebookEntry(
-            keyboard.Id,
-            75
-        );
+            TestDataFactory.createPricebookEntry(
+                laptop.Id,
+                100
+            );
+
+            TestDataFactory.createPricebookEntry(
+                mouse.Id,
+                50
+            );
+
+            TestDataFactory.createPricebookEntry(
+                keyboard.Id,
+                75
+            );
+        }
     }
 
     @IsTest
     static void shouldAllowUniqueProductsOnSameQuote() {
-        User salesRepUser = TestDataFactory.createSalesRepUser();
+        User salesRepUser = getSalesRepUser();
 
         System.runAs(salesRepUser) {
             Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
@@ -107,7 +116,7 @@ private class QuoteLineItemDuplicateValidationTest {
 
     @IsTest
     static void shouldBlockDuplicateProductAlreadyOnQuote() {
-        User salesRepUser = TestDataFactory.createSalesRepUser();
+        User salesRepUser = getSalesRepUser();
 
         System.runAs(salesRepUser) {
             Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
@@ -156,7 +165,7 @@ private class QuoteLineItemDuplicateValidationTest {
 
     @IsTest
     static void shouldOnlyFailDuplicateRecordsDuringBulkInsert() {
-        User salesRepUser = TestDataFactory.createSalesRepUser();
+        User salesRepUser = getSalesRepUser();
 
         System.runAs(salesRepUser) {
             Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
@@ -240,7 +249,7 @@ private class QuoteLineItemDuplicateValidationTest {
 
     @IsTest
     static void shouldValidateDuplicatesPerQuoteOnly() {
-        User salesRepUser = TestDataFactory.createSalesRepUser();
+        User salesRepUser = getSalesRepUser();
 
         System.runAs(salesRepUser) {
             Quote quoteOne = getQuoteByName(QUOTE_ONE_NAME);
@@ -285,7 +294,7 @@ private class QuoteLineItemDuplicateValidationTest {
 
     @IsTest
     static void shouldAllowQuantityUpdateWhenProductDoesNotChange() {
-        User salesRepUser = TestDataFactory.createSalesRepUser();
+        User salesRepUser = getSalesRepUser();
 
         System.runAs(salesRepUser) {
             Quote quoteRecord = getQuoteByName(QUOTE_ONE_NAME);
@@ -350,6 +359,15 @@ private class QuoteLineItemDuplicateValidationTest {
             pricebookEntries.size(),
             'Selector should return an empty Pricebook Entry list when input is empty.'
         );
+    }
+
+    private static User getSalesRepUser() {
+        return [
+            SELECT Id
+            FROM User
+            WHERE Id = :salesRepUserId
+            LIMIT 1
+        ];
     }
 
     private static Quote getQuoteByName(String quoteName) {

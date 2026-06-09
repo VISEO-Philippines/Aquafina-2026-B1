@@ -2,37 +2,48 @@
 public with sharing class TestDataFactory {
 
     public static User createSalesRepUser() {
-        List<Profile> profiles = [
-            SELECT Id
-            FROM Profile
-            WHERE Name = 'Standard User'
-            LIMIT 1
-        ];
+        Id profileId = getAnyProfileId();
 
-        List<UserRole> roles = [
-            SELECT Id
-            FROM UserRole
-            WHERE Name = 'SR_France_South'
-            LIMIT 1
-        ];
-
-        String unique = String.valueOf(System.currentTimeMillis());
+        String unique = String.valueOf(Math.abs(Crypto.getRandomInteger()));
+        String alias = 'tuser' + unique.substring(0, 3);
+        if (alias.length() > 8) {
+            alias = alias.substring(0, 8);
+        }
 
         User userRecord = new User(
             Username = 'testuser' + unique + '@example.com',
             Email = 'testuser' + unique + '@example.com',
             LastName = 'Test',
-            Alias = 'tuser',
+            Alias = alias,
             TimeZoneSidKey = 'Asia/Manila',
             LocaleSidKey = 'en_US',
             EmailEncodingKey = 'UTF-8',
-            ProfileId = profiles[0].Id,
-            LanguageLocaleKey = 'en_US',
-            UserRoleId = roles[0].Id
+            ProfileId = profileId,
+            LanguageLocaleKey = 'en_US'
         );
 
         insert userRecord;
         return userRecord;
+    }
+
+    private static Id getAnyProfileId() {
+        Id profileId = UserInfo.getProfileId();
+
+        if (profileId != null) {
+            return profileId;
+        }
+
+        List<Profile> profiles = [
+            SELECT Id
+            FROM Profile
+            LIMIT 1
+        ];
+
+        if (profiles.isEmpty()) {
+            throw new System.AssertException('No Profile found in test org.');
+        }
+
+        return profiles[0].Id;
     }
 
     // Create Account
