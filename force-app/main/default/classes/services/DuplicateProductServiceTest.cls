@@ -1,6 +1,5 @@
 @IsTest
 private class DuplicateProductServiceTest {
-
     // ---------------------------------------------------------------------------
     // Shared data — one account, pricebook, opportunity, quote, and two products:
     //   "Seeded Product"  — already has a line in the quote (for DB-duplicate tests)

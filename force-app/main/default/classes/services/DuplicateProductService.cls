@@ -52,6 +52,8 @@ public with sharing class DuplicateProductService
             return;
         }
 
+        Logger.debug('DuplicateProductService.checkDuplicateProducts (insert): processing ' + newLines.size() + ' line(s)');
+
         resolveMissingProduct2Ids(newLines);
 
         Set<Id> quoteIds = new Set<Id>();
@@ -77,6 +79,8 @@ public with sharing class DuplicateProductService
             return;
         }
 
+        Logger.debug('DuplicateProductService.checkDuplicateProducts (update): evaluating ' + newLines.size() + ' line(s) for product changes');
+
         checkDuplicateProducts(filterChangedLines(newLines, oldMap));
     }
 
@@ -97,6 +101,7 @@ public with sharing class DuplicateProductService
             }
         }
 
+        Logger.debug('DuplicateProductService.filterChangedLines: ' + changed.size() + ' of ' + newLines.size() + ' lines have a product change');
         return changed;
     }
 
@@ -199,6 +204,7 @@ public with sharing class DuplicateProductService
 
     // Phase 3 — loop every incoming line and add an error if the product is a duplicate
     // either within the current batch (duplicateInBatch) or already saved in the database (duplicateInDatabase).
+    // Log a single post-loop WARN summary to avoid overlogging inside the batch loop.
     private void flagDuplicates(
         List<QuoteLineItem>  newLines,
         Map<Id, Set<Id>>     existingMap,
@@ -206,6 +212,8 @@ public with sharing class DuplicateProductService
         Map<Id, String>      productNames
     )
     {
+        Integer duplicateCount = 0;
+
         for (QuoteLineItem newLine : newLines)
         {
             String  pairKey           = getQuoteProductKey(newLine.QuoteId, newLine.Product2Id);
@@ -214,9 +222,15 @@ public with sharing class DuplicateProductService
 
             if (duplicateInBatch || duplicateInDatabase)
             {
+                duplicateCount++;
                 String prodName = productNames.containsKey(newLine.Product2Id) ? productNames.get(newLine.Product2Id) : null;
                 newLine.addError(formatDuplicateError(prodName));
             }
+        }
+
+        if (duplicateCount > 0)
+        {
+            Logger.warn('Blocked ' + duplicateCount + ' duplicate product line(s) across ' + newLines.size() + ' QuoteLineItem(s)');
         }
     }
 
