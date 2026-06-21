@@ -15,6 +15,8 @@ public abstract class TriggerHandler {
                 this.beforeInsert();
             } else if (Trigger.isUpdate) {
                 this.beforeUpdate();
+            } else if (Trigger.isDelete) {
+                this.beforeDelete();
             }
         } else if (Trigger.isAfter) {
             if (Trigger.isInsert) {
@@ -37,6 +39,12 @@ public abstract class TriggerHandler {
      * Executes before update event. Override in subclass if needed.
      */
     public virtual void beforeUpdate() {
+    }
+
+    /**
+     * Executes before delete event. Override in subclass if needed.
+     */
+    public virtual void beforeDelete() {
     }
 
     /**

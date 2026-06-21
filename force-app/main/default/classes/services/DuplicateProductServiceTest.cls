@@ -7,15 +7,17 @@ private class DuplicateProductServiceTest {
     // ---------------------------------------------------------------------------
     @TestSetup
     static void setupData() {
-        Account acc = TestDataFactory.createAccount('Duplicate Test Account');
-        Pricebook2 pb = TestDataFactory.createPricebook('Duplicate Test Pricebook');
+        Account acc    = TestDataFactory.createAccount('Duplicate Test Account');
+        Pricebook2 pb  = TestDataFactory.createPricebook('Duplicate Test Pricebook');
+        User salesRep  = TestDataFactory.createSalesRepUser();
 
         Opportunity opp = new Opportunity(
-            Name = 'Duplicate Test Opportunity',
-            StageName = 'Prospecting',
-            CloseDate = Date.today().addDays(30),
-            AccountId = acc.Id,
-            Pricebook2Id = pb.Id
+            Name         = 'Duplicate Test Opportunity',
+            StageName    = 'Prospecting',
+            CloseDate    = Date.today().addDays(30),
+            AccountId    = acc.Id,
+            Pricebook2Id = pb.Id,
+            OwnerId      = salesRep.Id
         );
         insert opp;
 
@@ -38,6 +40,11 @@ private class DuplicateProductServiceTest {
 
     private static Quote getTestQuote() {
         return [SELECT Id FROM Quote WHERE Name = 'Duplicate Test Quote' LIMIT 1];
+    }
+
+    private static User getSalesRepUser() {
+        Opportunity opp = [SELECT OwnerId FROM Opportunity WHERE Name = 'Duplicate Test Opportunity' LIMIT 1];
+        return [SELECT Id FROM User WHERE Id = :opp.OwnerId LIMIT 1];
     }
 
     private static PricebookEntry getPbeByProductName(String productName) {
@@ -80,14 +87,18 @@ private class DuplicateProductServiceTest {
     // ---------------------------------------------------------------------------
     @IsTest
     static void beforeInsert_allowsUniqueProductInsertion() {
-        Quote q = getTestQuote();
+        Quote q            = getTestQuote();
         PricebookEntry pbe = getPbeByProductName('Unique Product');
         QuoteLineItem newLine = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Quantity = 1, UnitPrice = pbe.UnitPrice);
 
         Test.startTest();
-        Database.SaveResult res = Database.insert(newLine, false);
-        Assert.isTrue(res.isSuccess(), 'Unique product insert should succeed');
+        Database.SaveResult res;
+        System.runAs(getSalesRepUser()) {
+            res = Database.insert(newLine, false);
+        }
         Test.stopTest();
+
+        Assert.isTrue(res.isSuccess(), 'Unique product insert should succeed even when executed as a restricted sales-rep user');
     }
 
     // ---------------------------------------------------------------------------
