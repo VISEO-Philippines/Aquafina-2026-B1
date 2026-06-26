@@ -39,7 +39,8 @@ public with sharing class FrozenQuoteService {
     // ─── Public Entry Points ─────────────────────────────────────────────────
 
     /**
-     * Blocks any DML on QuoteLineItem records when their parent Quote is frozen.
+     * Blocks any DML on QuoteLineItem records when their parent Quote is frozen
+     * and the current user is not exempt for that specific Quote's Opportunity owner.
      * Called from beforeInsert, beforeUpdate, and beforeDelete on QuoteLineItem.
      *
      * @param lines Trigger.new (insert/update) or Trigger.old (delete)
@@ -59,23 +60,25 @@ public with sharing class FrozenQuoteService {
             return;
         }
 
-        if (isCurrentUserExemptForQuotes(frozenQuoteIds)) {
-            Logger.info('FrozenQuoteService: current user is exempt from freeze enforcement (role hierarchy)');
-            return;
-        }
+        Map<Id, Boolean> exemptByQuoteId = exemptionByQuoteId(frozenQuoteIds);
 
+        Boolean anyBlocked = false;
         for (QuoteLineItem qli : lines) {
-            if (frozenQuoteIds.contains(qli.QuoteId)) {
+            if (frozenQuoteIds.contains(qli.QuoteId) && exemptByQuoteId.get(qli.QuoteId) != true) {
                 qli.addError(FROZEN_ERROR_MSG);
+                anyBlocked = true;
             }
         }
 
-        Logger.warn('FrozenQuoteService: blocked QuoteLineItem DML — quote is In Review');
+        if (anyBlocked) {
+            Logger.warn('FrozenQuoteService: blocked QuoteLineItem DML — quote is In Review');
+        }
     }
 
     /**
      * Blocks add/remove of Primary Contact (IsPrimary = true) on Opportunities
-     * whose synced Quote is frozen.
+     * whose synced Quote is frozen, unless the current user is exempt for that
+     * specific Opportunity's owner.
      * Called from beforeInsert and beforeDelete on OpportunityContactRole.
      *
      * @param roles Trigger.new (insert) or Trigger.old (delete)
@@ -106,18 +109,19 @@ public with sharing class FrozenQuoteService {
             return;
         }
 
-        if (isCurrentUserExemptForOpps(frozenOppIds)) {
-            Logger.info('FrozenQuoteService: current user is exempt from freeze enforcement (role hierarchy)');
-            return;
-        }
+        Map<Id, Boolean> exemptByOppId = exemptionByOppId(frozenOppIds);
 
+        Boolean anyBlocked = false;
         for (OpportunityContactRole ocr : primaryRoles) {
-            if (frozenOppIds.contains(ocr.OpportunityId)) {
+            if (frozenOppIds.contains(ocr.OpportunityId) && exemptByOppId.get(ocr.OpportunityId) != true) {
                 ocr.addError(FROZEN_ERROR_MSG);
+                anyBlocked = true;
             }
         }
 
-        Logger.warn('FrozenQuoteService: blocked OpportunityContactRole DML — quote is In Review');
+        if (anyBlocked) {
+            Logger.warn('FrozenQuoteService: blocked OpportunityContactRole DML — quote is In Review');
+        }
     }
 
     // ─── Freeze Detection ────────────────────────────────────────────────────
@@ -153,79 +157,103 @@ public with sharing class FrozenQuoteService {
     // ─── Exemption Checks ────────────────────────────────────────────────────
 
     /**
-     * Checks exemption by resolving the Opportunity owners for the given frozen Quote IDs.
+     * Returns a map of quoteId -> isExempt for the current user, evaluated
+     * per Quote against the owner of that Quote's Opportunity.
      */
-    private Boolean isCurrentUserExemptForQuotes(Set<Id> frozenQuoteIds) {
-        Set<Id> oppIds = new Set<Id>();
+    private Map<Id, Boolean> exemptionByQuoteId(Set<Id> frozenQuoteIds) {
+        Map<Id, Id> quoteToOpp = new Map<Id, Id>();
         for (Quote q : this.quoteSelector.getQuotesByIds(frozenQuoteIds)) {
             if (q.OpportunityId != null) {
-                oppIds.add(q.OpportunityId);
+                quoteToOpp.put(q.Id, q.OpportunityId);
             }
         }
-        return isCurrentUserExempt(getOwnerIdsFromOpps(oppIds));
-    }
 
-    /**
-     * Checks exemption by resolving the Opportunity owners for the given frozen Opp IDs.
-     */
-    private Boolean isCurrentUserExemptForOpps(Set<Id> frozenOppIds) {
-        return isCurrentUserExempt(getOwnerIdsFromOpps(frozenOppIds));
-    }
+        Map<Id, Id> oppToOwner    = ownerByOppId(new Set<Id>(quoteToOpp.values()));
+        Map<Id, Boolean> exemptByOwner = isCurrentUserExemptPerOwner(new Set<Id>(oppToOwner.values()));
 
-    private Set<Id> getOwnerIdsFromOpps(Set<Id> oppIds) {
-        Set<Id> ownerIds = new Set<Id>();
-        for (Opportunity opp : this.oppSelector.getOpportunitiesByIds(oppIds)) {
-            ownerIds.add(opp.OwnerId);
+        Map<Id, Boolean> result = new Map<Id, Boolean>();
+        for (Id quoteId : frozenQuoteIds) {
+            Id oppId   = quoteToOpp.get(quoteId);
+            Id ownerId = oppId != null ? oppToOwner.get(oppId) : null;
+            result.put(quoteId, ownerId != null && exemptByOwner.get(ownerId) == true);
         }
-        return ownerIds;
+        return result;
     }
 
     /**
-     * Returns true only if the current running user's role is strictly above
-     * EVERY Opportunity owner's role in the hierarchy (manager or higher).
-     * A user with no role, or at the same role level as an owner, is not exempt.
-     * Uses per-transaction caches to minimise SOQL queries.
+     * Returns a map of oppId -> isExempt for the current user, evaluated
+     * per Opportunity against that Opportunity's owner.
+     */
+    private Map<Id, Boolean> exemptionByOppId(Set<Id> frozenOppIds) {
+        Map<Id, Id> oppToOwner        = ownerByOppId(frozenOppIds);
+        Map<Id, Boolean> exemptByOwner = isCurrentUserExemptPerOwner(new Set<Id>(oppToOwner.values()));
+
+        Map<Id, Boolean> result = new Map<Id, Boolean>();
+        for (Id oppId : frozenOppIds) {
+            Id ownerId = oppToOwner.get(oppId);
+            result.put(oppId, ownerId != null && exemptByOwner.get(ownerId) == true);
+        }
+        return result;
+    }
+
+    private Map<Id, Id> ownerByOppId(Set<Id> oppIds) {
+        Map<Id, Id> oppToOwner = new Map<Id, Id>();
+        for (Opportunity opp : this.oppSelector.getOpportunitiesByIds(oppIds)) {
+            oppToOwner.put(opp.Id, opp.OwnerId);
+        }
+        return oppToOwner;
+    }
+
+    /**
+     * Returns a map of ownerId -> isExempt for the current running user.
+     * The current user is exempt from a given owner's record when their role
+     * is strictly above that owner's role in the hierarchy (manager or higher).
+     * A user with no role, or at the same level as the owner, is NOT exempt.
+     * Uses per-transaction exemptionCache keyed by ownerId.
      */
     @TestVisible
-    private Boolean isCurrentUserExempt(Set<Id> ownerIds) {
+    private Map<Id, Boolean> isCurrentUserExemptPerOwner(Set<Id> ownerIds) {
         if (ownerIds.isEmpty()) {
-            return false;
+            return new Map<Id, Boolean>();
         }
 
-        Id currentUserId = UserInfo.getUserId();
-
-        Set<Id> allUserIds = new Set<Id>(ownerIds);
-        allUserIds.add(currentUserId);
-
-        Map<Id, Id> userToRole = new Map<Id, Id>();
-        for (User u : this.roleSelector.getUsersByIds(allUserIds)) {
-            userToRole.put(u.Id, u.UserRoleId);
-        }
-
-        Id currentUserRoleId = userToRole.get(currentUserId);
-        if (currentUserRoleId == null) {
-            return false;
-        }
-
-        Map<Id, Id> parentMap = buildRoleParentMap();
-
+        Set<Id> uncachedOwnerIds = new Set<Id>();
         for (Id ownerId : ownerIds) {
-            if (exemptionCache.containsKey(ownerId)) {
-                if (!exemptionCache.get(ownerId)) {
-                    return false;
-                }
-                continue;
-            }
-
-            Id ownerRoleId = userToRole.get(ownerId);
-            Boolean exempt = isRoleAtOrAbove(currentUserRoleId, ownerRoleId, parentMap);
-            exemptionCache.put(ownerId, exempt);
-
-            if (!exempt) {
-                return false;
+            if (!exemptionCache.containsKey(ownerId)) {
+                uncachedOwnerIds.add(ownerId);
             }
         }
-        return true;
+
+        if (!uncachedOwnerIds.isEmpty()) {
+            Id currentUserId = UserInfo.getUserId();
+
+            Set<Id> allUserIds = new Set<Id>(uncachedOwnerIds);
+            allUserIds.add(currentUserId);
+
+            Map<Id, Id> userToRole = new Map<Id, Id>();
+            for (User u : this.roleSelector.getUsersByIds(allUserIds)) {
+                userToRole.put(u.Id, u.UserRoleId);
+            }
+
+            Id currentUserRoleId = userToRole.get(currentUserId);
+            Map<Id, Id> parentMap = buildRoleParentMap();
+
+            for (Id ownerId : uncachedOwnerIds) {
+                Boolean exempt;
+                if (currentUserRoleId == null) {
+                    exempt = false;
+                } else {
+                    exempt = isRoleAtOrAbove(currentUserRoleId, userToRole.get(ownerId), parentMap);
+                }
+                exemptionCache.put(ownerId, exempt);
+            }
+        }
+
+        Map<Id, Boolean> result = new Map<Id, Boolean>();
+        for (Id ownerId : ownerIds) {
+            result.put(ownerId, exemptionCache.get(ownerId));
+        }
+        return result;
     }
 
     /**
