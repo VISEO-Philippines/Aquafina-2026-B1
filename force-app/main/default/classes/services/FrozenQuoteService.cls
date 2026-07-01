@@ -31,6 +31,15 @@ public with sharing class FrozenQuoteService {
         OpportunitySelector oppSelector,
         UserRoleSelector roleSelector
     ) {
+        if (quoteSelector == null) {
+            throw new IllegalArgumentException('quoteSelector must not be null');
+        }
+        if (oppSelector == null) {
+            throw new IllegalArgumentException('oppSelector must not be null');
+        }
+        if (roleSelector == null) {
+            throw new IllegalArgumentException('roleSelector must not be null');
+        }
         this.quoteSelector = quoteSelector;
         this.oppSelector   = oppSelector;
         this.roleSelector  = roleSelector;
