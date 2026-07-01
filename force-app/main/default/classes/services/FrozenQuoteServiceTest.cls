@@ -290,6 +290,119 @@ private class FrozenQuoteServiceTest {
         Assert.isTrue(result.isSuccess(), 'Manager user should be exempt from the freeze enforcement');
     }
 
+    @IsTest
+    static void enforceFreezeOnQli_mixedBatch_allowsExemptRecordBlocksNonExempt() {
+        // ── Role Hierarchy ───────────────────────────────────────────────────
+        // Manager sits above User X (Sales_Rep_France_South) but has no
+        // hierarchical relationship with User Y, who belongs to a separate tree.
+        //
+        //   ManagerRole
+        //       └─ Sales_Rep_France_South  (User X)
+        //
+        //   UnrelatedRepRole               (User Y)
+
+        User userX   = TestDataFactory.createSalesRepUser();
+        Id   xRoleId = [SELECT UserRoleId FROM User WHERE Id = :userX.Id LIMIT 1].UserRoleId;
+        User manager = TestDataFactory.createManagerUser(xRoleId);
+
+        String ts = String.valueOf(Datetime.now().getTime());
+        UserRole unrelatedRole = new UserRole(
+            Name          = 'Test Unrelated Rep ' + ts,
+            DeveloperName = 'Test_Unrelated_Rep_' + ts
+        );
+        insert unrelatedRole;
+
+        List<Profile> profiles = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        if (profiles.isEmpty()) {
+            profiles = [SELECT Id FROM Profile LIMIT 1];
+        }
+        User userY = new User(
+            Alias             = 'usry',
+            Email             = 'usery+' + ts + '@example.com',
+            EmailEncodingKey  = 'UTF-8',
+            LastName          = 'UserY',
+            LanguageLocaleKey = 'en_US',
+            LocaleSidKey      = 'en_US',
+            TimeZoneSidKey    = 'America/Los_Angeles',
+            Username          = 'usery+' + ts + '@example.com',
+            ProfileId         = profiles[0].Id,
+            UserRoleId        = unrelatedRole.Id
+        );
+        insert userY;
+
+        // ── Data Setup ───────────────────────────────────────────────────────
+        Account        acc = TestDataFactory.createAccount('Mixed Batch Account');
+        Pricebook2     pb  = TestDataFactory.createPricebook('Mixed Batch Pricebook');
+        Product2       p   = TestDataFactory.createProduct('Mixed Batch Product');
+        PricebookEntry pbe = TestDataFactory.createPricebookEntry(pb, p, 100);
+
+        // Opportunity A owned by User X; Opportunity B owned by User Y
+        Opportunity oppA = new Opportunity(
+            Name         = 'Opp A - Mixed Batch',
+            StageName    = 'Prospecting',
+            CloseDate    = Date.today().addDays(30),
+            AccountId    = acc.Id,
+            Pricebook2Id = pb.Id,
+            OwnerId      = userX.Id
+        );
+        Opportunity oppB = new Opportunity(
+            Name         = 'Opp B - Mixed Batch',
+            StageName    = 'Prospecting',
+            CloseDate    = Date.today().addDays(30),
+            AccountId    = acc.Id,
+            Pricebook2Id = pb.Id,
+            OwnerId      = userY.Id
+        );
+        insert new List<Opportunity>{ oppA, oppB };
+
+        // Quotes start as Draft so setup DML is not blocked, then both are frozen
+        Quote quoteA = TestDataFactory.createQuote(oppA, pb.Id);
+        Quote quoteB = TestDataFactory.createQuote(oppB, pb.Id);
+        quoteA.Status = 'In Review';
+        quoteB.Status = 'In Review';
+        update new List<Quote>{ quoteA, quoteB };
+
+        // One QLineItem per frozen quote — submitted together in a single batch
+        QuoteLineItem qliA = new QuoteLineItem(
+            QuoteId          = quoteA.Id,
+            PricebookEntryId = pbe.Id,
+            Quantity         = 1,
+            UnitPrice        = pbe.UnitPrice
+        );
+        QuoteLineItem qliB = new QuoteLineItem(
+            QuoteId          = quoteB.Id,
+            PricebookEntryId = pbe.Id,
+            Quantity         = 1,
+            UnitPrice        = pbe.UnitPrice
+        );
+
+        // ── Execute ──────────────────────────────────────────────────────────
+        Test.startTest();
+        List<Database.SaveResult> results;
+        System.runAs(manager) {
+            results = Database.insert(new List<QuoteLineItem>{ qliA, qliB }, false);
+        }
+        Test.stopTest();
+
+        // ── Assert ───────────────────────────────────────────────────────────
+        // Quote A: manager is above User X in hierarchy → exempt → allowed
+        Assert.isTrue(
+            results[0].isSuccess(),
+            'Quote A insert should succeed: running user is above the opportunity owner (User X)'
+        );
+
+        // Quote B: manager has no hierarchical relationship with User Y → blocked
+        Assert.isFalse(
+            results[1].isSuccess(),
+            'Quote B insert should be blocked: running user is not above the opportunity owner (User Y)'
+        );
+        Assert.areEqual(
+            FrozenQuoteService.FROZEN_ERROR_MSG,
+            results[1].getErrors()[0].getMessage(),
+            'Expected the frozen quote error message for Quote B'
+        );
+    }
+
     // ─── Edge Cases ───────────────────────────────────────────────────────────
 
     @IsTest
