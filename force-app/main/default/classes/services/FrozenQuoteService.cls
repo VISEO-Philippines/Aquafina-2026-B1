@@ -252,7 +252,7 @@ public with sharing class FrozenQuoteService {
                 if (currentUserRoleId == null) {
                     exempt = false;
                 } else {
-                    exempt = isRoleAtOrAbove(currentUserRoleId, userToRole.get(ownerId), parentMap);
+                    exempt = isManagerOrHigherThanOwnerRole(currentUserRoleId, userToRole.get(ownerId), parentMap);
                 }
                 exemptionCache.put(ownerId, exempt);
             }
@@ -290,7 +290,7 @@ public with sharing class FrozenQuoteService {
      * @param parentMap       Map<roleId, parentRoleId> for the full hierarchy
      */
     @TestVisible
-    private Boolean isRoleAtOrAbove(Id candidateRoleId, Id ownerRoleId, Map<Id, Id> parentMap) {
+    private Boolean isManagerOrHigherThanOwnerRole(Id candidateRoleId, Id ownerRoleId, Map<Id, Id> parentMap) {
         if (ownerRoleId == null) {
             return false;
         }
