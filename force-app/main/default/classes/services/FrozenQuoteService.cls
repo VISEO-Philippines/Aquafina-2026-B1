@@ -12,7 +12,7 @@ public with sharing class FrozenQuoteService {
 
     // Per-transaction caches to avoid redundant queries
     @TestVisible
-    private static Map<Id, Id> cachedRoleParentMap;
+    private static Map<Id, Id> cachedRoleParentMap = new Map<Id, Id>();
     @TestVisible
     private static Map<Id, Boolean> exemptionCache = new Map<Id, Boolean>();
 
@@ -245,14 +245,22 @@ public with sharing class FrozenQuoteService {
             }
 
             Id currentUserRoleId = userToRole.get(currentUserId);
-            Map<Id, Id> parentMap = buildRoleParentMap();
+
+            Set<Id> ownerRoleIds = new Set<Id>();
+            for (Id ownerId : uncachedOwnerIds) {
+                Id roleId = userToRole.get(ownerId);
+                if (roleId != null) {
+                    ownerRoleIds.add(roleId);
+                }
+            }
+            populateAncestorMap(ownerRoleIds);
 
             for (Id ownerId : uncachedOwnerIds) {
                 Boolean exempt;
                 if (currentUserRoleId == null) {
                     exempt = false;
                 } else {
-                    exempt = isManagerOrHigherThanOwnerRole(currentUserRoleId, userToRole.get(ownerId), parentMap);
+                    exempt = isManagerOrHigherThanOwnerRole(currentUserRoleId, userToRole.get(ownerId), cachedRoleParentMap);
                 }
                 exemptionCache.put(ownerId, exempt);
             }
@@ -266,18 +274,29 @@ public with sharing class FrozenQuoteService {
     }
 
     /**
-     * Builds and caches a Map<roleId, parentRoleId> from all UserRole records.
-     * Cached for the lifetime of the transaction to avoid repeated queries.
+     * Populates cachedRoleParentMap with the ancestor chain for each seed role,
+     * querying one level at a time until every path reaches the root.
+     * Roles already in the cache are skipped, so repeated calls within a
+     * transaction only fetch genuinely new portions of the hierarchy.
      */
-    private Map<Id, Id> buildRoleParentMap() {
-        if (cachedRoleParentMap != null) {
-            return cachedRoleParentMap;
+    private void populateAncestorMap(Set<Id> seedRoleIds) {
+        Set<Id> frontier = new Set<Id>();
+        for (Id roleId : seedRoleIds) {
+            if (roleId != null && !cachedRoleParentMap.containsKey(roleId)) {
+                frontier.add(roleId);
+            }
         }
-        cachedRoleParentMap = new Map<Id, Id>();
-        for (UserRole role : this.roleSelector.getAllRoles()) {
-            cachedRoleParentMap.put(role.Id, role.ParentRoleId);
+
+        while (!frontier.isEmpty()) {
+            Set<Id> nextFrontier = new Set<Id>();
+            for (UserRole role : this.roleSelector.getRolesByIds(frontier)) {
+                cachedRoleParentMap.put(role.Id, role.ParentRoleId);
+                if (role.ParentRoleId != null && !cachedRoleParentMap.containsKey(role.ParentRoleId)) {
+                    nextFrontier.add(role.ParentRoleId);
+                }
+            }
+            frontier = nextFrontier;
         }
-        return cachedRoleParentMap;
     }
 
     /**

@@ -6,15 +6,18 @@
 public without sharing class UserRoleSelector {
 
     /**
-     * Returns all UserRole records in the org with Id and ParentRoleId.
-     * Used to build an in-memory parent map for role hierarchy traversal.
+     * Returns UserRole records for the given IDs with Id and ParentRoleId.
+     * Used to iteratively walk the role hierarchy from a known set of roles
+     * upward to the root, without loading the full org role tree.
      *
-     * @return List of all UserRole records
+     * @param roleIds Set of UserRole IDs to fetch
+     * @return List of UserRole records
      */
-    public List<UserRole> getAllRoles() {
+    public List<UserRole> getRolesByIds(Set<Id> roleIds) {
         return [
             SELECT Id, ParentRoleId
             FROM UserRole
+            WHERE Id IN :roleIds
         ];
     }
 
