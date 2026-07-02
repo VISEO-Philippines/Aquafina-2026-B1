@@ -26,6 +26,33 @@ public with sharing class TestDataFactory {
         return userRecord;
     }
 
+    // Creates a user with a specified role for role hierarchy tests.
+    public static User createSalesRepUserWithRole(Id userRoleId) {
+        Id profileId = getAnyProfileId();
+
+        String unique = String.valueOf(Math.abs(Crypto.getRandomInteger()));
+        String alias = 'tuser' + unique.substring(0, 3);
+        if (alias.length() > 8) {
+            alias = alias.substring(0, 8);
+        }
+
+        User userRecord = new User(
+            Username = 'testuser' + unique + '@example.com',
+            Email = 'testuser' + unique + '@example.com',
+            LastName = 'Test',
+            Alias = alias,
+            TimeZoneSidKey = 'Asia/Manila',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            ProfileId = profileId,
+            LanguageLocaleKey = 'en_US',
+            UserRoleId = userRoleId
+        );
+
+        insert userRecord;
+        return userRecord;
+    }
+
     private static Id getAnyProfileId() {
         Id profileId = UserInfo.getProfileId();
 
@@ -59,6 +86,28 @@ public with sharing class TestDataFactory {
 
         insert accountRecord;
         return accountRecord;
+    }
+
+    // Create Contact linked to an Account
+    public static Contact createContact(Id accountId) {
+        String unique = String.valueOf(System.currentTimeMillis());
+        return createContact(
+            accountId,
+            'Test Contact ' + unique
+        );
+    }
+
+    public static Contact createContact(
+        Id accountId,
+        String lastName
+    ) {
+        Contact contactRecord = new Contact(
+            LastName = lastName,
+            AccountId = accountId
+        );
+
+        insert contactRecord;
+        return contactRecord;
     }
 
     // Create Opportunity with reference to Account
@@ -142,6 +191,20 @@ public with sharing class TestDataFactory {
         );
 
         insert quoteRecord;
+        return quoteRecord;
+    }
+
+    // Updates Quote status after related test data has been created.
+    public static Quote updateQuoteStatus(
+        Id quoteId,
+        String status
+    ) {
+        Quote quoteRecord = new Quote(
+            Id = quoteId,
+            Status = status
+        );
+
+        update quoteRecord;
         return quoteRecord;
     }
 
