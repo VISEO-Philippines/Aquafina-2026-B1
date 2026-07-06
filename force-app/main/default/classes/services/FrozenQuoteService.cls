@@ -138,7 +138,6 @@ public with sharing class FrozenQuoteService {
     /**
      * Returns the subset of quoteIds whose Quote.Status is 'In Review'.
      */
-    @TestVisible
     private Set<Id> getFrozenQuoteIds(Set<Id> quoteIds) {
         Set<Id> frozen = new Set<Id>();
         for (Quote q : this.quoteSelector.getQuotesByIds(quoteIds)) {
@@ -152,7 +151,6 @@ public with sharing class FrozenQuoteService {
     /**
      * Returns the subset of oppIds whose synced Quote (IsSyncing = true) is frozen.
      */
-    @TestVisible
     private Set<Id> getFrozenOppIds(Set<Id> oppIds) {
         Set<Id> frozenOppIds = new Set<Id>();
         for (Quote q : this.quoteSelector.getSyncingQuotesByOppIds(oppIds)) {
@@ -214,13 +212,35 @@ public with sharing class FrozenQuoteService {
     }
 
     /**
+     * Traverses from ownerRoleId UP the hierarchy starting at the owner's PARENT.
+     * Returns true if candidateRoleId is found anywhere above the owner's role.
+     * Peers (same role) are NOT exempt — only "manager and higher" per the user story.
+     */
+    private Boolean isManagerOrHigher(Id candidateRoleId, Id ownerRoleId, Map<Id, Id> parentMap) {
+        if (ownerRoleId == null) {
+            return false;
+        }
+
+        Id cursor = parentMap.get(ownerRoleId);
+        Set<Id> visited = new Set<Id>();
+
+        while (cursor != null && !visited.contains(cursor)) {
+            if (cursor == candidateRoleId) {
+                return true;
+            }
+            visited.add(cursor);
+            cursor = parentMap.get(cursor);
+        }
+        return false;
+    }
+
+    /**
      * Returns a map of ownerId -> isExempt for the current running user.
      * The current user is exempt from a given owner's record when their role
      * is strictly above that owner's role in the hierarchy (manager or higher).
      * A user with no role, or at the same level as the owner, is NOT exempt.
      * Uses per-transaction exemptionCache keyed by ownerId.
      */
-    @TestVisible
     private Map<Id, Boolean> isCurrentUserExemptPerOwner(Set<Id> ownerIds) {
         if (ownerIds.isEmpty()) {
             return new Map<Id, Boolean>();
@@ -260,7 +280,7 @@ public with sharing class FrozenQuoteService {
                 if (currentUserRoleId == null) {
                     exempt = false;
                 } else {
-                    exempt = isManagerOrHigherThanOwnerRole(currentUserRoleId, userToRole.get(ownerId), cachedRoleParentMap);
+                    exempt = isManagerOrHigher(currentUserRoleId, userToRole.get(ownerId), cachedRoleParentMap);
                 }
                 exemptionCache.put(ownerId, exempt);
             }
@@ -299,32 +319,4 @@ public with sharing class FrozenQuoteService {
         }
     }
 
-    /**
-     * Traverses from ownerRoleId UP the hierarchy starting at the owner's PARENT.
-     * Returns true if candidateRoleId is found anywhere above the owner's role.
-     * Peers (same role) are NOT exempt — only "manager and higher" per the user story.
-     *
-     * @param candidateRoleId Role of the current running user
-     * @param ownerRoleId     Role of the Opportunity owner
-     * @param parentMap       Map<roleId, parentRoleId> for the full hierarchy
-     */
-    @TestVisible
-    private Boolean isManagerOrHigherThanOwnerRole(Id candidateRoleId, Id ownerRoleId, Map<Id, Id> parentMap) {
-        if (ownerRoleId == null) {
-            return false;
-        }
-
-        // Start one level above the owner (the owner themselves are not exempt)
-        Id cursor = parentMap.get(ownerRoleId);
-        Set<Id> visited = new Set<Id>();
-
-        while (cursor != null && !visited.contains(cursor)) {
-            if (cursor == candidateRoleId) {
-                return true;
-            }
-            visited.add(cursor);
-            cursor = parentMap.get(cursor);
-        }
-        return false;
-    }
 }
