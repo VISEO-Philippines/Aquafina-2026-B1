@@ -16,15 +16,22 @@ public inherited sharing class RoleHierarchySelector {
         ]);
     }
 
-    // Retrieves role parent relationships used to determine whether
-    // the current user's role is above the Opportunity owner's role.
-    public static Map<Id, UserRole> getAllRoles() {
+
+    // Retrieves only the roles required for hierarchy traversal.
+    // Avoids querying unrelated roles outside the current transaction scope.
+    public static Map<Id, UserRole> getRolesByIds(
+        Set<Id> roleIds
+    ) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return new Map<Id, UserRole>();
+        }
+
         return new Map<Id, UserRole>([
             SELECT
                 Id,
                 ParentRoleId
             FROM UserRole
+            WHERE Id IN :roleIds
         ]);
     }
 }
- 

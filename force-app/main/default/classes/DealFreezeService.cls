@@ -44,6 +44,11 @@ public inherited sharing class DealFreezeService {
         Set<Id> frozenQuoteOwnerIds =
             collectFrozenQuoteOwnerIds(quotesById.values());
 
+        if (frozenQuoteOwnerIds.isEmpty()) {
+            return;
+        }
+
+        // Retrieves the subset of Opportunity owners who are above the current user
         Set<Id> authorizedOwnerIds =
             RoleHierarchyService.getAuthorizedOwnerIds(
                 frozenQuoteOwnerIds

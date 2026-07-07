@@ -7,5 +7,6 @@
   },
   "xml.preferences.showSchemaDocumentationType": "none",
   "salesforcedx-vscode-core.show-cli-success-msg": false,
-  "salesforcedx-vscode-apex-testing.restore-previous-results": false
+  "salesforcedx-vscode-apex-testing.restore-previous-results": false,
+  "salesforce.agentforceVibesAutocomplete.enableAutocompletions": true
 }

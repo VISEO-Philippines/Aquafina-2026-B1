@@ -24,10 +24,11 @@ public class QuoteLineItemTriggerHandler extends TriggerHandler {
             (List<QuoteLineItem>) Trigger.new
         );
  
-        List<QuoteLineItem> qlisWithProductChange = filterQuoteLineItemsWithProductChange(
-            (List<QuoteLineItem>) Trigger.new,
-            (Map<Id, QuoteLineItem>) Trigger.oldMap
-        );
+        List<QuoteLineItem> qlisWithProductChange =
+            QuoteLineItemHelper.filterQuoteLineItemsWithProductChange(
+                (List<QuoteLineItem>) Trigger.new,
+                (Map<Id, QuoteLineItem>) Trigger.oldMap
+            );
  
         QuoteLineItemValidationService.validateDuplicateProducts(
             qlisWithProductChange
@@ -41,23 +42,5 @@ public class QuoteLineItemTriggerHandler extends TriggerHandler {
             (List<QuoteLineItem>) Trigger.old
         );
     }
- 
-    private static List<QuoteLineItem> filterQuoteLineItemsWithProductChange(
-        List<QuoteLineItem> newQLIs,
-        Map<Id, QuoteLineItem> oldQLIMap
-    ) {
-        List<QuoteLineItem> qlisWithProductChange = new List<QuoteLineItem>();
- 
-        for (QuoteLineItem newQLI : newQLIs) {
-            QuoteLineItem oldQLI = oldQLIMap.get(newQLI.Id);
- 
-            Boolean productHasChanged = newQLI.Product2Id != oldQLI.Product2Id;
- 
-            if (productHasChanged) {
-                qlisWithProductChange.add(newQLI);
-            }
-        }
- 
-        return qlisWithProductChange;
-    }
 }
+ 
