@@ -179,12 +179,7 @@ public inherited sharing class DealFreezeService {
             Opportunity oldOpportunity =
                 oldOpportunityMap.get(newOpportunity.Id);
 
-            Boolean primaryContactHasChanged =
-                oldOpportunity != null &&
-                newOpportunity.Primary_Contact__c !=
-                oldOpportunity.Primary_Contact__c;
-
-            if (primaryContactHasChanged) {
+            if (hasPrimaryContactChanged(newOpportunity, oldOpportunity)) {
                 opportunityIds.add(newOpportunity.Id);
             }
         }
@@ -210,6 +205,15 @@ public inherited sharing class DealFreezeService {
         }
 
         return opportunityOwnerIds;
+    }
+
+    private static Boolean hasPrimaryContactChanged(
+        Opportunity newOpportunity,
+        Opportunity oldOpportunity
+    ) {
+        return oldOpportunity != null &&
+            newOpportunity.Primary_Contact__c !=
+            oldOpportunity.Primary_Contact__c;
     }
 
     // Adds a record-level error to each QLI that belongs to a frozen Quote
@@ -257,13 +261,8 @@ public inherited sharing class DealFreezeService {
             Opportunity oldOpportunity =
                 oldOpportunityMap.get(newOpportunity.Id);
 
-            Boolean primaryContactHasChanged =
-                oldOpportunity != null &&
-                newOpportunity.Primary_Contact__c !=
-                oldOpportunity.Primary_Contact__c;
-
             if (
-                !primaryContactHasChanged ||
+                !hasPrimaryContactChanged(newOpportunity, oldOpportunity) ||
                 !frozenOpportunityIds.contains(newOpportunity.Id)
             ) {
                 continue;
