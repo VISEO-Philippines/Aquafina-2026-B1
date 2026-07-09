@@ -84,4 +84,59 @@ public class TestDataFactory {
         insert u;
         return u;
     }
+
+    /**
+     * Creates a manager-level user whose role is the direct parent of the given childRoleId.
+     * If the child role has no existing parent, a synthetic parent role is created and
+     * the child role is re-parented to it. If childRoleId is null, the manager is created
+     * without a role (exemption checks will then return false in tests).
+     *
+     * @param childRoleId The UserRole Id representing the subordinate role (e.g. Sales Rep)
+     * @return A new User inserted with the manager role assigned
+     */
+    public static User createManagerUser(Id childRoleId) {
+        List<Profile> profiles = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        if (profiles.isEmpty()) {
+            profiles = [SELECT Id FROM Profile LIMIT 1];
+        }
+
+        Id managerRoleId;
+
+        if (childRoleId != null) {
+            List<UserRole> childRoles = [SELECT Id, ParentRoleId FROM UserRole WHERE Id = :childRoleId LIMIT 1];
+            if (!childRoles.isEmpty() && childRoles[0].ParentRoleId != null) {
+                // Use the existing parent role
+                managerRoleId = childRoles[0].ParentRoleId;
+            } else {
+                // Create a synthetic parent role and re-parent the child
+                String unique = String.valueOf(Datetime.now().getTime());
+                UserRole newParent = new UserRole(
+                    Name = 'Test Manager Role ' + unique,
+                    DeveloperName = 'Test_Manager_' + unique
+                );
+                insert newParent;
+                managerRoleId = newParent.Id;
+
+                if (!childRoles.isEmpty()) {
+                    update new UserRole(Id = childRoles[0].Id, ParentRoleId = managerRoleId);
+                }
+            }
+        }
+
+        String unique = String.valueOf(Datetime.now().getTime());
+        User mgr = new User(
+            Alias            = 'mgr' + unique.substring(0, Math.min(4, unique.length())),
+            Email            = 'manager+' + unique + '@example.com',
+            EmailEncodingKey = 'UTF-8',
+            LastName         = 'ManagerUser',
+            LanguageLocaleKey = 'en_US',
+            LocaleSidKey     = 'en_US',
+            TimeZoneSidKey   = 'America/Los_Angeles',
+            Username         = 'manager+' + unique + '@example.com',
+            ProfileId        = profiles[0].Id,
+            UserRoleId       = managerRoleId
+        );
+        insert mgr;
+        return mgr;
+    }
 }
