@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>ToContact</fullName>
+        <color>#FF0000</color>
+        <default>true</default>
+        <label>To Contact</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>InProgress</fullName>
+        <color>#33CCFF</color>
+        <default>false</default>
+        <label>In Progress</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Qualified</fullName>
+        <color>#33FF33</color>
+        <default>false</default>
+        <label>Qualified</label>
+        <converted>true</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Disqualified</fullName>
+        <color>#000000</color>
+        <default>false</default>
+        <label>Disqualified</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>ClosedNotConverted</fullName>
+        <color>#A8A8A8</color>
+        <default>false</default>
+        <label>Closed - Not Converted</label>
+        <converted>false</converted>
+    </standardValue>
+</StandardValueSet>
