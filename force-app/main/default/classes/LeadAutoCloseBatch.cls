@@ -29,8 +29,7 @@ public without sharing class LeadAutoCloseBatch implements Database.Batchable<SO
 
     public void execute(Database.BatchableContext bc, List<SObject> scope) {
         List<Lead> leads = (List<Lead>) scope;
-        new LeadAutoCloseService().closeStagnantLeads(leads);
-        closedCount += leads.size();
+        closedCount += new LeadAutoCloseService().closeStagnantLeads(leads);
     }
 
     public void finish(Database.BatchableContext bc) {

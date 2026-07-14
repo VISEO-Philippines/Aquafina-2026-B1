@@ -38,9 +38,10 @@ private class LeadAutoCloseServiceTest {
         Lead ld = requeryLead(TestDataFactory.createLead('Stagnant', 'ToContact', salesRep.Id).Id);
 
         Test.startTest();
-        new LeadAutoCloseService().closeStagnantLeads(new List<Lead>{ ld });
+        Integer closedCount = new LeadAutoCloseService().closeStagnantLeads(new List<Lead>{ ld });
         Test.stopTest();
 
+        Assert.areEqual(1, closedCount, 'Return value should reflect the number of Leads actually closed');
         Lead closed = [SELECT Status, Auto_Close_Reason__c FROM Lead WHERE Id = :ld.Id];
         Assert.areEqual(LeadAutoCloseService.CLOSED_STATUS, closed.Status, 'Lead should be closed');
         Assert.isTrue(

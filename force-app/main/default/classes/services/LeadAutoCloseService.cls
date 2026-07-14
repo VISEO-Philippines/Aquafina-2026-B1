@@ -37,10 +37,12 @@ public without sharing class LeadAutoCloseService {
      * batch chunk, then notifies the owners of the Leads that were closed.
      *
      * @param scope A chunk of stagnant Lead records (typically from LeadAutoCloseBatch)
+     * @return the number of Leads actually closed (may be less than scope.size()
+     *         if some records failed to save)
      */
-    public void closeStagnantLeads(List<Lead> scope) {
+    public Integer closeStagnantLeads(List<Lead> scope) {
         if (scope == null || scope.isEmpty()) {
-            return;
+            return 0;
         }
 
         for (Lead ld : scope) {
@@ -55,13 +57,18 @@ public without sharing class LeadAutoCloseService {
             if (results[i].isSuccess()) {
                 closedLeads.add(scope[i]);
             } else {
+                List<String> errorMessages = new List<String>();
+                for (Database.Error err : results[i].getErrors()) {
+                    errorMessages.add(err.getMessage());
+                }
                 Logger.error('LeadAutoCloseService: failed to auto-close Lead - '
-                        + results[i].getErrors()[0].getMessage()).setRecord(scope[i]);
+                        + String.join(errorMessages, '; ')).setRecord(scope[i]);
             }
         }
 
         notifyOwners(closedLeads);
         Logger.saveLog();
+        return closedLeads.size();
     }
 
     private String buildClosureReason(Lead ld) {
@@ -70,10 +77,12 @@ public without sharing class LeadAutoCloseService {
     }
 
     /**
-     * Sends an in-app custom notification to the owner of each closed Lead.
-     * Queue/Group-owned Leads are skipped since custom notifications can
-     * only target Users. A failure to notify never blocks or rolls back
-     * the Lead closure that already happened.
+     * Sends one in-app custom notification per owner, listing every Lead of
+     * theirs that was closed. Leads are grouped by owner instead of notifying
+     * once per Lead so a single large batch chunk can't drive send() calls
+     * past the org's custom notification limits. Queue/Group-owned Leads are
+     * skipped since custom notifications can only target Users. A failure to
+     * notify never blocks or rolls back the Lead closure that already happened.
      */
     private void notifyOwners(List<Lead> closedLeads) {
         if (closedLeads.isEmpty()) {
@@ -86,22 +95,41 @@ public without sharing class LeadAutoCloseService {
             return;
         }
 
+        Map<Id, List<Lead>> closedLeadsByOwnerId = new Map<Id, List<Lead>>();
         for (Lead ld : closedLeads) {
             if (ld.Owner.Type != OWNER_TYPE_USER) {
                 continue;
             }
+            if (!closedLeadsByOwnerId.containsKey(ld.OwnerId)) {
+                closedLeadsByOwnerId.put(ld.OwnerId, new List<Lead>());
+            }
+            closedLeadsByOwnerId.get(ld.OwnerId).add(ld);
+        }
+
+        for (Id ownerId : closedLeadsByOwnerId.keySet()) {
+            List<Lead> ownerLeads = closedLeadsByOwnerId.get(ownerId);
             try {
                 Messaging.CustomNotification notification = new Messaging.CustomNotification();
                 notification.setTitle(NOTIF_TITLE);
-                notification.setBody(ld.Name + ' was automatically closed after 60 days of inactivity.');
+                notification.setBody(buildNotificationBody(ownerLeads));
                 notification.setNotificationTypeId(notificationTypeId);
-                notification.setTargetId(ld.Id);
-                notification.send(new Set<String>{ ld.OwnerId });
+                notification.send(new Set<String>{ ownerId });
             } catch (Exception e) {
-                Logger.warn('LeadAutoCloseService: failed to notify owner of auto-closed Lead - ' + e.getMessage())
-                        .setRecord(ld);
+                Logger.warn('LeadAutoCloseService: failed to notify owner of auto-closed Leads - ' + e.getMessage())
+                        .setRecord(ownerLeads[0]);
             }
         }
+    }
+
+    private String buildNotificationBody(List<Lead> ownerLeads) {
+        List<String> leadNames = new List<String>();
+        for (Lead ld : ownerLeads) {
+            leadNames.add(ld.Name);
+        }
+        return String.format(
+            'The following Lead(s) were automatically closed after 60 days of inactivity:\n\n{0}',
+            new List<String>{ String.join(leadNames, '\n') }
+        );
     }
 
     private Id getNotificationTypeId() {
