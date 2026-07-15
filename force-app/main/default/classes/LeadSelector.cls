@@ -19,7 +19,7 @@ public inherited sharing class LeadSelector {
                 Closure_Reason__c
             FROM Lead
             WHERE
-                LastModifiedDate <= :cutoffDate
+                Last_Modified_Date__c <= :cutoffDate
                 AND IsConverted = false
                 AND Status NOT IN :excludedStatuses
         ];
@@ -42,7 +42,7 @@ public inherited sharing class LeadSelector {
                 Closure_Reason__c
             FROM Lead
             WHERE
-                LastModifiedDate <= :cutoffDate
+                Last_Modified_Date__c <= :cutoffDate
                 AND IsConverted = false
                 AND Status NOT IN :excludedStatuses
         ]);

@@ -34,6 +34,8 @@ public inherited sharing class LeadAutoCloseBatch
         LeadAutoCloseService.autoCloseInactiveLeads(
             (List<Lead>) scope
         );
+
+        // return successful batch ids for logging or future enhancements.
     }
 
     // Invoked after all batches have completed.
@@ -43,5 +45,7 @@ public inherited sharing class LeadAutoCloseBatch
         Database.BatchableContext batchContext
     ) {
         // No post-processing required.
-    }
+        // logger batch id.
+     }
 }
+

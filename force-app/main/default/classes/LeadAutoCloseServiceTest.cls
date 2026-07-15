@@ -84,4 +84,9 @@ private class LeadAutoCloseServiceTest {
             );
         }
     }
+
+    // bagong custom field sa lead.
+    // custom meta data store the statuses.
+    // Testing batchable class the limit.
+    // load testing
 }

@@ -14,7 +14,7 @@ public inherited sharing class LeadNotificationService {
         }
 
         CustomNotificationType notificationType =
-            NotificationSelector.getLeadAutoClosedNotificationType();
+            NotificationSelector.getLeadAutoClosedNotificationType(); //
 
         if (notificationType == null) {
             return;
