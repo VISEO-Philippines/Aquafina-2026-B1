@@ -120,7 +120,7 @@ private class LeadAutoCloseBatchTest {
         Test.startTest();
         Database.executeBatch(
             new LeadAutoCloseBatch(),
-            totalLeads
+            10
         );
         Test.stopTest();
 
