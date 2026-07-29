@@ -139,4 +139,21 @@ public class TestDataFactory {
         insert mgr;
         return mgr;
     }
+
+    /**
+     * Creates a Lead with the given Status, optionally owned by ownerId
+     * (a User or Queue Id). If ownerId is null, the running user owns it.
+     */
+    public static Lead createLead(String lastName, String status, Id ownerId) {
+        String unique = String.valueOf(Datetime.now().getTime());
+        Lead ld = new Lead(
+            LastName         = lastName,
+            Company          = 'Test Company ' + unique,
+            Status           = status,
+            OwnerId          = ownerId,
+            Customer_Type__c = 'Restaurateur'
+        );
+        insert ld;
+        return ld;
+    }
 }
