@@ -208,6 +208,45 @@ public with sharing class TestDataFactory {
         return quoteRecord;
     }
 
+    // Create Lead
+    public static Lead createLead() {
+        return createLead('Open - Not Contacted');
+    }
+
+    public static Lead createLead(String status) {
+        String unique = String.valueOf(System.currentTimeMillis());
+
+        Lead leadRecord = new Lead(
+            LastName = 'Test Lead ' + unique,
+            Company = 'Test Company ' + unique,
+            Status = status
+        );
+
+        insert leadRecord;
+        return leadRecord;
+    }
+
+    /**
+     * Creates a Lead with a custom Last_Modified_Date__c value.
+     * Useful for batch tests that require inactive Leads.
+     */
+    public static Lead createLead(
+        String status,
+        Datetime lastModifiedDate
+    ) {
+        String unique = String.valueOf(System.currentTimeMillis());
+
+        Lead leadRecord = new Lead(
+            LastName = 'Test Lead ' + unique,
+            Company = 'Test Company ' + unique,
+            Status = status,
+            Last_Modified_Date__c = lastModifiedDate
+        );
+
+        insert leadRecord;
+        return leadRecord;
+    }
+
     // Create QuoteLineItem
     public static QuoteLineItem createQuoteLineItem(Id quoteId, Id pbeId) {
         return createQuoteLineItem(quoteId, pbeId, 100);

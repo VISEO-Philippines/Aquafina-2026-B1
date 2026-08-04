@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomNotificationType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customNotifTypeName>Lead_Auto_Closed</customNotifTypeName>
+    <description>Notifies the Lead owner when a Lead is automatically closed after 60 days of inactivity.</description>
+    <masterLabel>Lead Auto Closed</masterLabel>
+    <desktop>true</desktop>
+    <mobile>true</mobile>
+</CustomNotificationType>
